@@ -7,6 +7,7 @@ This document outlines the coding standards and best practices for the LearnSmar
 ## 🏗️ **ARCHITECTURE PATTERNS**
 
 ### **Layered Architecture**
+
 ```
 Controllers → Services → Repositories → Database
 ```
@@ -17,6 +18,7 @@ Controllers → Services → Repositories → Database
 - **Models**: Data entities and relationships
 
 ### **Dependency Injection**
+
 - Use constructor injection for dependencies
 - Inject interfaces, not concrete implementations
 - Keep dependencies minimal and focused
@@ -24,6 +26,7 @@ Controllers → Services → Repositories → Database
 ## 📝 **NAMING CONVENTIONS**
 
 ### **Files & Directories**
+
 ```typescript
 // ✅ Good
 user.controller.ts
@@ -38,6 +41,7 @@ userRepo.ts
 ```
 
 ### **Classes & Interfaces**
+
 ```typescript
 // ✅ Good
 export class UserService extends BaseService<User> {}
@@ -50,6 +54,7 @@ export interface createUserDTO {}
 ```
 
 ### **Variables & Functions**
+
 ```typescript
 // ✅ Good
 const userData = req.body
@@ -63,6 +68,7 @@ async function CreateUser(data: any): Promise<any> {}
 ```
 
 ### **Constants**
+
 ```typescript
 // ✅ Good
 export const API_VERSION = 'v1'
@@ -80,6 +86,7 @@ export const max_file_size = 10485760
 ## 🔧 **CODE STRUCTURE**
 
 ### **Import Organization**
+
 ```typescript
 // 1. Node modules
 import express from 'express'
@@ -95,6 +102,7 @@ import { AuthTokens } from './auth.types'
 ```
 
 ### **File Structure Template**
+
 ```typescript
 'use strict'
 
@@ -140,6 +148,7 @@ export default SampleService
 ## 📊 **RESPONSE STANDARDS**
 
 ### **Success Responses**
+
 ```typescript
 // ✅ Standard format
 return ResponseHandler.success(res, {
@@ -157,6 +166,7 @@ return ResponseHandler.paginated(res, {
 ```
 
 ### **Error Responses**
+
 ```typescript
 // ✅ Use custom error classes
 throw new BadRequestError('Email is required')
@@ -170,17 +180,18 @@ throw new Error('Something went wrong')
 ## 🛡️ **ERROR HANDLING**
 
 ### **Service Layer**
+
 ```typescript
 export class UserService extends BaseService<User> {
   async createUser(data: CreateUserDto): Promise<User> {
     try {
       // Validate business rules
       await this.validateCreate(data)
-      
+
       // Check for conflicts
       const existingUser = await this.repository.findByEmail(data.email)
       this.throwIfExists(!!existingUser, 'Email already registered')
-      
+
       // Create user
       return await this.repository.create(data)
     } catch (error) {
@@ -192,12 +203,13 @@ export class UserService extends BaseService<User> {
 ```
 
 ### **Controller Layer**
+
 ```typescript
 export class UserController extends BaseController<User> {
   createUser = catchAsync(async (req: Request, res: Response) => {
     const userData = this.extractCreateData(req)
     const result = await this.service.create(userData)
-    
+
     return ResponseHandler.success(res, {
       message: 'User created successfully',
       data: result,
@@ -210,6 +222,7 @@ export class UserController extends BaseController<User> {
 ## 🔍 **VALIDATION STANDARDS**
 
 ### **Request Validation**
+
 ```typescript
 // ✅ Use validation middleware
 const userValidationSchema = {
@@ -229,12 +242,13 @@ router.post('/users', validate(userValidationSchema), userController.create)
 ```
 
 ### **Business Logic Validation**
+
 ```typescript
 // ✅ In service layer
 protected async validateCreate(data: CreateUserDto): Promise<void> {
   this.validateRequired(data.email, 'email')
   this.validateRequired(data.password, 'password')
-  
+
   if (data.password.length < AUTH.PASSWORD.MIN_LENGTH) {
     throw new BadRequestError(`Password must be at least ${AUTH.PASSWORD.MIN_LENGTH} characters`)
   }
@@ -244,6 +258,7 @@ protected async validateCreate(data: CreateUserDto): Promise<void> {
 ## 📝 **TYPE SAFETY**
 
 ### **DTOs & Interfaces**
+
 ```typescript
 // ✅ Use specific DTOs
 export interface CreateUserDto {
@@ -268,6 +283,7 @@ async function createUser(data: any): Promise<any> {}
 ```
 
 ### **Generic Types**
+
 ```typescript
 // ✅ Use generics for reusability
 export class BaseRepository<T, CreateInput, UpdateInput> {
@@ -284,6 +300,7 @@ export class UserRepository extends BaseRepository<User, CreateUserDto, UpdateUs
 ## 🗄️ **DATABASE PATTERNS**
 
 ### **Repository Pattern**
+
 ```typescript
 export class UserRepository extends BaseRepository<User> {
   async findByEmail(email: string): Promise<User | null> {
@@ -300,6 +317,7 @@ export class UserRepository extends BaseRepository<User> {
 ```
 
 ### **Service Pattern**
+
 ```typescript
 export class UserService extends BaseService<User> {
   async getUserByEmail(email: string): Promise<User> {
@@ -313,6 +331,7 @@ export class UserService extends BaseService<User> {
 ## 🔧 **MIDDLEWARE PATTERNS**
 
 ### **Authentication Middleware**
+
 ```typescript
 // ✅ Use role-based middleware
 router.get('/users', auth('users:read'), userController.getMany)
@@ -320,6 +339,7 @@ router.delete('/users/:id', auth('users:delete'), userController.delete)
 ```
 
 ### **Validation Middleware**
+
 ```typescript
 // ✅ Use validation schemas
 const loginSchema = {
@@ -335,11 +355,12 @@ router.post('/login', validate(loginSchema), authController.login)
 ## 📊 **LOGGING STANDARDS**
 
 ### **Service Logging**
+
 ```typescript
 export class UserService extends BaseService<User> {
   async createUser(data: CreateUserDto): Promise<User> {
     this.logger.info('Creating new user', { email: data.email })
-    
+
     try {
       const result = await this.repository.create(data)
       this.logger.info('User created successfully', { userId: result.id })
@@ -353,6 +374,7 @@ export class UserService extends BaseService<User> {
 ```
 
 ### **Request Logging**
+
 ```typescript
 // ✅ Use structured logging
 logRequest.info('User login attempt', req, null, { email: req.body.email })
@@ -362,6 +384,7 @@ logRequest.error('Login failed', req, error, { email: req.body.email })
 ## 🧪 **TESTING STANDARDS**
 
 ### **Unit Tests**
+
 ```typescript
 describe('UserService', () => {
   let userService: UserService
@@ -392,6 +415,7 @@ describe('UserService', () => {
 ## 📚 **DOCUMENTATION STANDARDS**
 
 ### **Code Comments**
+
 ```typescript
 /**
  * Creates a new user with email verification
@@ -406,6 +430,7 @@ async createUser(userData: CreateUserDto): Promise<User> {
 ```
 
 ### **API Documentation**
+
 ```typescript
 /**
  * @route POST /api/v1/users
@@ -419,6 +444,7 @@ async createUser(userData: CreateUserDto): Promise<User> {
 ## 🔒 **SECURITY STANDARDS**
 
 ### **Input Sanitization**
+
 ```typescript
 // ✅ Always validate and sanitize inputs
 const sanitizedEmail = data.email.toLowerCase().trim()
@@ -426,6 +452,7 @@ const hashedPassword = await bcrypt.hash(data.password, AUTH.PASSWORD.BCRYPT_ROU
 ```
 
 ### **Error Information**
+
 ```typescript
 // ✅ Don't expose sensitive information
 catch (error) {
@@ -442,6 +469,7 @@ catch (error) {
 ## 📈 **PERFORMANCE STANDARDS**
 
 ### **Database Queries**
+
 ```typescript
 // ✅ Use specific selects
 const user = await prisma.user.findUnique({
@@ -458,6 +486,7 @@ const users = await prisma.user.findMany({
 ```
 
 ### **Async Operations**
+
 ```typescript
 // ✅ Use Promise.all for parallel operations
 const [user, tokens] = await Promise.all([
@@ -473,6 +502,7 @@ const tokens = await this.tokenRepository.findByUserId(userId)
 ## 🔄 **VERSIONING & MIGRATION**
 
 ### **API Versioning**
+
 ```typescript
 // ✅ Use version prefixes
 const API_PREFIX = '/api/v1'
@@ -480,6 +510,7 @@ app.use(API_PREFIX, routes)
 ```
 
 ### **Database Migrations**
+
 ```sql
 -- ✅ Always use migrations for schema changes
 -- Migration: 20240101000000_add_user_role_field
@@ -502,6 +533,7 @@ ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user';
 ## 🛠️ **TOOLS & LINTING**
 
 ### **ESLint Configuration**
+
 ```json
 {
   "extends": ["@typescript-eslint/recommended", "prettier"],
@@ -514,6 +546,7 @@ ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user';
 ```
 
 ### **Prettier Configuration**
+
 ```json
 {
   "semi": false,
@@ -528,9 +561,10 @@ ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user';
 ## 📞 **SUPPORT**
 
 For questions about these standards, please:
+
 1. Check existing code examples
 2. Consult this documentation
 3. Ask in team discussions
 4. Update standards as needed
 
-**Remember**: Consistency is key to maintainable code! 🎯 
+**Remember**: Consistency is key to maintainable code! 🎯

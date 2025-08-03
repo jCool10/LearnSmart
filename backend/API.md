@@ -1,6 +1,7 @@
 # 📚 API Documentation
 
 ## 🌐 **Base URL**
+
 ```
 http://localhost:8080/api/v1
 ```
@@ -8,14 +9,17 @@ http://localhost:8080/api/v1
 ## 🔐 **Authentication**
 
 ### Authentication Method
+
 The API uses **Bearer Token** authentication with JWT (JSON Web Tokens).
 
 ### Request Header
+
 ```http
 Authorization: Bearer <access_token>
 ```
 
 ### Token Types
+
 - **Access Token**: Short-lived token (15 minutes) for API access
 - **Refresh Token**: Long-lived token (7 days) for obtaining new access tokens
 
@@ -26,11 +30,14 @@ Authorization: Bearer <access_token>
 All API responses follow a consistent format:
 
 ### Success Response
+
 ```json
 {
   "success": true,
   "message": "Operation completed successfully",
-  "data": { /* Response data */ },
+  "data": {
+    /* Response data */
+  },
   "meta": {
     "timestamp": "2025-01-27T10:30:00.000Z",
     "version": "v1"
@@ -39,6 +46,7 @@ All API responses follow a consistent format:
 ```
 
 ### Error Response
+
 ```json
 {
   "success": false,
@@ -57,11 +65,14 @@ All API responses follow a consistent format:
 ```
 
 ### Paginated Response
+
 ```json
 {
   "success": true,
   "message": "Data retrieved successfully",
-  "data": [ /* Array of items */ ],
+  "data": [
+    /* Array of items */
+  ],
   "meta": {
     "timestamp": "2025-01-27T10:30:00.000Z",
     "version": "v1",
@@ -80,12 +91,14 @@ All API responses follow a consistent format:
 ## 🔒 **Authentication Endpoints**
 
 ### 1. **Register User**
+
 Create a new user account.
 
 **Endpoint:** `POST /auth/register`  
 **Authentication:** ❌ Not required
 
 #### Request Body
+
 ```json
 {
   "email": "john@example.com",
@@ -95,11 +108,13 @@ Create a new user account.
 ```
 
 #### Validation Rules
+
 - **email**: Valid email format, unique
 - **password**: Minimum 8 characters, must contain uppercase, lowercase, number, and special character
 - **username**: 2-50 characters, letters, numbers, underscores, and spaces only
 
 #### Response (201 Created)
+
 ```json
 {
   "success": true,
@@ -129,12 +144,14 @@ Create a new user account.
 ```
 
 ### 2. **Login User**
+
 Authenticate existing user.
 
 **Endpoint:** `POST /auth/login`  
 **Authentication:** ❌ Not required
 
 #### Request Body
+
 ```json
 {
   "email": "john@example.com",
@@ -143,24 +160,31 @@ Authenticate existing user.
 ```
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
   "message": "Login successful",
   "data": {
-    "user": { /* User object */ },
-    "tokens": { /* Token objects */ }
+    "user": {
+      /* User object */
+    },
+    "tokens": {
+      /* Token objects */
+    }
   }
 }
 ```
 
 ### 3. **Refresh Tokens**
+
 Get new access and refresh tokens.
 
 **Endpoint:** `POST /auth/refresh-tokens`  
 **Authentication:** ❌ Not required
 
 #### Request Body
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -168,6 +192,7 @@ Get new access and refresh tokens.
 ```
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -186,12 +211,14 @@ Get new access and refresh tokens.
 ```
 
 ### 4. **Logout User**
+
 Invalidate refresh token.
 
 **Endpoint:** `POST /auth/logout`  
 **Authentication:** ❌ Not required
 
 #### Request Body
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -199,6 +226,7 @@ Invalidate refresh token.
 ```
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -208,12 +236,14 @@ Invalidate refresh token.
 ```
 
 ### 5. **Forgot Password**
+
 Request password reset email.
 
 **Endpoint:** `POST /auth/forgot-password`  
 **Authentication:** ❌ Not required
 
 #### Request Body
+
 ```json
 {
   "email": "john@example.com"
@@ -221,6 +251,7 @@ Request password reset email.
 ```
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -230,12 +261,14 @@ Request password reset email.
 ```
 
 ### 6. **Reset Password**
+
 Reset password using reset token.
 
 **Endpoint:** `POST /auth/reset-password`  
 **Authentication:** ❌ Not required
 
 #### Request Body
+
 ```json
 {
   "resetPasswordToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -244,6 +277,7 @@ Reset password using reset token.
 ```
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -253,12 +287,14 @@ Reset password using reset token.
 ```
 
 ### 7. **Send Verification Email**
+
 Send email verification link.
 
 **Endpoint:** `POST /auth/send-verification-email`  
 **Authentication:** ✅ Required
 
 #### Request Body
+
 ```json
 {
   "user": {
@@ -269,6 +305,7 @@ Send email verification link.
 ```
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -278,12 +315,14 @@ Send email verification link.
 ```
 
 ### 8. **Verify Email**
+
 Verify email address using verification token.
 
 **Endpoint:** `POST /auth/verify-email`  
 **Authentication:** ❌ Not required
 
 #### Request Body
+
 ```json
 {
   "verifyEmailToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -291,6 +330,7 @@ Verify email address using verification token.
 ```
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -304,12 +344,14 @@ Verify email address using verification token.
 ## 👥 **User Management Endpoints**
 
 ### 1. **Create User** (Admin Only)
+
 Create a new user.
 
 **Endpoint:** `POST /users`  
 **Authentication:** ✅ Required (`manageUsers` permission)
 
 #### Request Body
+
 ```json
 {
   "name": "Jane Smith",
@@ -320,6 +362,7 @@ Create a new user.
 ```
 
 #### Response (201 Created)
+
 ```json
 {
   "success": true,
@@ -337,23 +380,27 @@ Create a new user.
 ```
 
 ### 2. **Get All Users**
+
 Retrieve paginated list of users.
 
 **Endpoint:** `GET /users`  
 **Authentication:** ✅ Required (`getUsers` permission)
 
 #### Query Parameters
+
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 10, max: 100)
 - `sortBy` (optional): Sort field (default: 'createdAt')
 - `sortOrder` (optional): 'asc' or 'desc' (default: 'desc')
 
 #### Example Request
+
 ```
 GET /users?page=1&limit=10&sortBy=name&sortOrder=asc
 ```
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -381,39 +428,49 @@ GET /users?page=1&limit=10&sortBy=name&sortOrder=asc
 ```
 
 ### 3. **Search Users**
+
 Search users by name or email.
 
 **Endpoint:** `GET /users/search`  
 **Authentication:** ✅ Required (`getUsers` permission)
 
 #### Query Parameters
+
 - `q` (required): Search query
 - `page`, `limit`, `sortBy`, `sortOrder`: Same as Get All Users
 
 #### Example Request
+
 ```
 GET /users/search?q=john&page=1&limit=10
 ```
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
   "message": "Search results retrieved successfully",
-  "data": [ /* Array of matching users */ ],
+  "data": [
+    /* Array of matching users */
+  ],
   "meta": {
-    "pagination": { /* Pagination info */ }
+    "pagination": {
+      /* Pagination info */
+    }
   }
 }
 ```
 
 ### 4. **Get User Stats**
+
 Get user statistics.
 
 **Endpoint:** `GET /users/stats`  
 **Authentication:** ✅ Required (`getUsers` permission)
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -428,12 +485,14 @@ Get user statistics.
 ```
 
 ### 5. **Get User by ID**
+
 Retrieve specific user by ID.
 
 **Endpoint:** `GET /users/:id`  
 **Authentication:** ✅ Required (`getUsers` permission)
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -451,27 +510,33 @@ Retrieve specific user by ID.
 ```
 
 ### 6. **Get User by Email**
+
 Retrieve specific user by email.
 
 **Endpoint:** `GET /users/email/:email`  
 **Authentication:** ✅ Required (`getUsers` permission)
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
   "message": "User retrieved successfully",
-  "data": { /* User object */ }
+  "data": {
+    /* User object */
+  }
 }
 ```
 
 ### 7. **Update User**
+
 Update user information.
 
 **Endpoint:** `PUT /users/:id`  
 **Authentication:** ✅ Required (`manageUsers` permission)
 
 #### Request Body
+
 ```json
 {
   "name": "John Smith",
@@ -481,21 +546,26 @@ Update user information.
 ```
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
   "message": "User updated successfully",
-  "data": { /* Updated user object */ }
+  "data": {
+    /* Updated user object */
+  }
 }
 ```
 
 ### 8. **Delete User**
+
 Delete a user.
 
 **Endpoint:** `DELETE /users/:id`  
 **Authentication:** ✅ Required (`manageUsers` permission)
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -509,12 +579,14 @@ Delete a user.
 ## 🎫 **Token Management Endpoints**
 
 ### 1. **Create Token** (Admin Only)
+
 Create a new token.
 
 **Endpoint:** `POST /tokens`  
 **Authentication:** ✅ Required (`manageTokens` permission)
 
 #### Request Body
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -526,6 +598,7 @@ Create a new token.
 ```
 
 #### Response (201 Created)
+
 ```json
 {
   "success": true,
@@ -544,39 +617,49 @@ Create a new token.
 ```
 
 ### 2. **Get All Tokens**
+
 Retrieve paginated list of tokens.
 
 **Endpoint:** `GET /tokens`  
 **Authentication:** ✅ Required (`getTokens` permission)
 
 #### Query Parameters
+
 - `page`, `limit`, `sortBy`, `sortOrder`: Same as other paginated endpoints
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
   "message": "Tokens retrieved successfully",
-  "data": [ /* Array of token objects */ ],
+  "data": [
+    /* Array of token objects */
+  ],
   "meta": {
-    "pagination": { /* Pagination info */ }
+    "pagination": {
+      /* Pagination info */
+    }
   }
 }
 ```
 
 ### 3. **Get Active Tokens**
+
 Retrieve non-blacklisted, non-expired tokens.
 
 **Endpoint:** `GET /tokens/active`  
 **Authentication:** ✅ Required (`getTokens` permission)
 
 ### 4. **Get Token Stats**
+
 Get token statistics.
 
 **Endpoint:** `GET /tokens/stats`  
 **Authentication:** ✅ Required (`getTokens` permission)
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -596,12 +679,14 @@ Get token statistics.
 ```
 
 ### 5. **Delete Expired Tokens**
+
 Clean up expired tokens.
 
 **Endpoint:** `DELETE /tokens/expired`  
 **Authentication:** ✅ Required (`manageTokens` permission)
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -613,77 +698,91 @@ Clean up expired tokens.
 ```
 
 ### 6. **Get Tokens by User**
+
 Get all tokens for a specific user.
 
 **Endpoint:** `GET /tokens/user/:userId`  
 **Authentication:** ✅ Required (`getTokens` permission)
 
 ### 7. **Delete User Tokens**
+
 Delete all tokens for a specific user.
 
 **Endpoint:** `DELETE /tokens/user/:userId`  
 **Authentication:** ✅ Required (`manageTokens` permission)
 
 ### 8. **Get Tokens by Type**
+
 Get tokens of a specific type.
 
 **Endpoint:** `GET /tokens/type/:type`  
 **Authentication:** ✅ Required (`getTokens` permission)
 
 #### Valid Types
+
 - `refresh`
 - `resetPassword`
 - `verifyEmail`
 
 ### 9. **Verify Token**
+
 Verify if a token is valid.
 
 **Endpoint:** `GET /tokens/verify/:token`  
 **Authentication:** ✅ Required (`getTokens` permission)
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
   "message": "Token verification result",
   "data": {
     "valid": true,
-    "token": { /* Token object if valid */ }
+    "token": {
+      /* Token object if valid */
+    }
   }
 }
 ```
 
 ### 10. **Blacklist Token by Value**
+
 Blacklist a token by its value.
 
 **Endpoint:** `PATCH /tokens/blacklist/:token`  
 **Authentication:** ✅ Required (`manageTokens` permission)
 
 ### 11. **Get Token by ID**
+
 Retrieve specific token by ID.
 
 **Endpoint:** `GET /tokens/:id`  
 **Authentication:** ✅ Required (`getTokens` permission)
 
 ### 12. **Get Token by Value**
+
 Retrieve token by its value.
 
 **Endpoint:** `GET /tokens/value/:token`  
 **Authentication:** ✅ Required (`getTokens` permission)
 
 ### 13. **Update Token**
+
 Update token information.
 
 **Endpoint:** `PUT /tokens/:id`  
 **Authentication:** ✅ Required (`manageTokens` permission)
 
 ### 14. **Blacklist Token by ID**
+
 Blacklist a token by its ID.
 
 **Endpoint:** `PATCH /tokens/:id/blacklist`  
 **Authentication:** ✅ Required (`manageTokens` permission)
 
 ### 15. **Delete Token**
+
 Delete a token.
 
 **Endpoint:** `DELETE /tokens/:id`  
@@ -694,12 +793,14 @@ Delete a token.
 ## 🏥 **Health Check Endpoints**
 
 ### 1. **Health Check**
+
 Check API health status.
 
 **Endpoint:** `GET /health`  
 **Authentication:** ❌ Not required
 
 #### Response (200 OK)
+
 ```json
 {
   "success": true,
@@ -728,6 +829,7 @@ Check API health status.
 ## ❌ **Error Codes**
 
 ### HTTP Status Codes
+
 - **200 OK**: Request successful
 - **201 Created**: Resource created successfully
 - **400 Bad Request**: Invalid request data
@@ -742,6 +844,7 @@ Check API health status.
 ### Common Error Responses
 
 #### Validation Error (400)
+
 ```json
 {
   "success": false,
@@ -763,6 +866,7 @@ Check API health status.
 ```
 
 #### Unauthorized Error (401)
+
 ```json
 {
   "success": false,
@@ -774,6 +878,7 @@ Check API health status.
 ```
 
 #### Forbidden Error (403)
+
 ```json
 {
   "success": false,
@@ -785,6 +890,7 @@ Check API health status.
 ```
 
 #### Not Found Error (404)
+
 ```json
 {
   "success": false,
@@ -796,6 +902,7 @@ Check API health status.
 ```
 
 #### Conflict Error (409)
+
 ```json
 {
   "success": false,
@@ -807,6 +914,7 @@ Check API health status.
 ```
 
 #### Rate Limit Error (429)
+
 ```json
 {
   "success": false,
@@ -822,39 +930,44 @@ Check API health status.
 ## 🔐 **Permissions**
 
 ### User Roles
+
 - **user**: Regular user with basic permissions
 - **admin**: Administrator with all permissions
 
 ### Available Permissions
+
 - `getUsers`: View user information
 - `manageUsers`: Create, update, delete users
 - `getTokens`: View token information
 - `manageTokens`: Create, update, delete tokens
 
 ### Permission Matrix
-| Endpoint | user | admin |
-|----------|------|-------|
-| POST /auth/* | ✅ | ✅ |
-| GET /users/* | ❌ | ✅ |
-| POST /users | ❌ | ✅ |
-| PUT /users/* | ❌ | ✅ |
-| DELETE /users/* | ❌ | ✅ |
-| GET /tokens/* | ❌ | ✅ |
-| POST /tokens | ❌ | ✅ |
-| PUT /tokens/* | ❌ | ✅ |
-| DELETE /tokens/* | ❌ | ✅ |
-| GET /health | ✅ | ✅ |
+
+| Endpoint          | user | admin |
+| ----------------- | ---- | ----- |
+| POST /auth/\*     | ✅   | ✅    |
+| GET /users/\*     | ❌   | ✅    |
+| POST /users       | ❌   | ✅    |
+| PUT /users/\*     | ❌   | ✅    |
+| DELETE /users/\*  | ❌   | ✅    |
+| GET /tokens/\*    | ❌   | ✅    |
+| POST /tokens      | ❌   | ✅    |
+| PUT /tokens/\*    | ❌   | ✅    |
+| DELETE /tokens/\* | ❌   | ✅    |
+| GET /health       | ✅   | ✅    |
 
 ---
 
 ## 🚀 **Rate Limiting**
 
 ### Default Limits
+
 - **Window**: 15 minutes
 - **Max Requests**: 100 per IP
 - **Routes**: All `/api/v1/*` routes
 
 ### Rate Limit Headers
+
 ```http
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
@@ -868,6 +981,7 @@ X-RateLimit-Reset: 1643275200
 ### Using cURL
 
 #### Register User
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
@@ -879,6 +993,7 @@ curl -X POST http://localhost:8080/api/v1/auth/register \
 ```
 
 #### Login User
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
@@ -889,6 +1004,7 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
 ```
 
 #### Get Users (with token)
+
 ```bash
 curl -X GET http://localhost:8080/api/v1/users \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -897,37 +1013,39 @@ curl -X GET http://localhost:8080/api/v1/users \
 ### Using JavaScript (Fetch)
 
 #### Register User
+
 ```javascript
 const response = await fetch('http://localhost:8080/api/v1/auth/register', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
   body: JSON.stringify({
     email: 'john@example.com',
     password: 'SecurePassword123!',
     username: 'John Doe'
   })
-});
+})
 
-const data = await response.json();
-console.log(data);
+const data = await response.json()
+console.log(data)
 ```
 
 #### Authenticated Request
+
 ```javascript
-const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
 
 const response = await fetch('http://localhost:8080/api/v1/users', {
   method: 'GET',
   headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json'
   }
-});
+})
 
-const data = await response.json();
-console.log(data);
+const data = await response.json()
+console.log(data)
 ```
 
 ---
@@ -935,11 +1053,13 @@ console.log(data);
 ## 🧪 **Testing**
 
 ### Test Environment
+
 - **Base URL**: `http://localhost:8080/api/v1`
 - **Test Database**: Separate test database
 - **Rate Limiting**: Disabled in test environment
 
 ### Running Tests
+
 ```bash
 # Run all tests
 npm test
@@ -966,6 +1086,7 @@ For questions or issues with the API:
 4. **Environment**: Ensure all environment variables are properly configured
 
 ### Environment Variables Required
+
 ```env
 DATABASE_URL=postgresql://user:password@localhost:5432/database
 JWT_SECRET=your-super-secret-jwt-key
@@ -980,4 +1101,4 @@ FRONTEND_URL=http://localhost:3000
 
 **Last Updated**: January 27, 2025  
 **API Version**: v1  
-**Documentation Version**: 1.0.0 
+**Documentation Version**: 1.0.0

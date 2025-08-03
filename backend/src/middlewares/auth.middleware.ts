@@ -49,4 +49,50 @@ export const auth = (...requiredRights: Permission[]) => {
   }
 }
 
+/**
+ * Optional auth middleware - doesn't throw error if no token provided
+ * Used for routes that work with or without authentication
+ */
+export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next() // Continue without user
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    passport.authenticate('jwt', { session: false }, (err: any, user: User | false, info: any) => {
+      if (err) {
+        return reject(err)
+      }
+
+      if (user) {
+        req.user = user
+      }
+
+      resolve()
+    })(req, res, next)
+  })
+    .then(() => next())
+    .catch((err) => next(err))
+}
+
+/**
+ * Role-based authorization middleware
+ * Must be used after auth middleware
+ */
+export const authorize = (...roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new UnauthorizedError('Please authenticate'))
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return next(new ForbiddenError('Access denied'))
+    }
+
+    next()
+  }
+}
+
 export default auth

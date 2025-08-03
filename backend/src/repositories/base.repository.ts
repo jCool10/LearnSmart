@@ -9,11 +9,12 @@ export interface BaseRepository<T, CreateInput, UpdateInput, WhereInput = any, I
 }
 
 export interface PaginationOptions {
-  page?: number
-  limit?: number
+  skip?: number
+  take?: number
 }
 
 export interface PaginationResult<T> {
+  items: any
   data: T[]
   meta: {
     total: number

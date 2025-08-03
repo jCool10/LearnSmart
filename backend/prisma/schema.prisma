@@ -27,6 +27,9 @@ model User {
 
   // Relations
   tokens          Token[]
+  createdRoadmaps Roadmap[]
+  enrollments     UserRoadmapEnrollment[]
+  lessonProgress  UserLessonProgress[]
 
   @@map("users")
 }
@@ -56,4 +59,132 @@ enum TokenType {
   refresh
   resetPassword
   verifyEmail
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  value       String   @unique
+  label       String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  roadmaps    Roadmap[]
+
+  @@map("categories")
+}
+
+model Roadmap {
+  id              String           @id @default(cuid())
+  title           String
+  description     String
+  difficulty      DifficultyLevel
+  totalLessons    Int              @default(0)
+  estimatedTime   String
+  rating          Float            @default(0)
+  enrolledUsers   Int              @default(0)
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  categoryId      String
+  category        Category         @relation(fields: [categoryId], references: [id])
+  creatorId       String
+  creator         User             @relation(fields: [creatorId], references: [id])
+  
+  lessons         Lesson[]
+  enrollments     UserRoadmapEnrollment[]
+  tags            RoadmapTag[]
+
+  @@map("roadmaps")
+}
+
+model Lesson {
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  content         String?
+  orderIndex      Int
+  estimatedMinutes Int     @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  roadmapId       String
+  roadmap         Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  
+  userProgress    UserLessonProgress[]
+
+  @@map("lessons")
+}
+
+model UserRoadmapEnrollment {
+  id              String           @id @default(cuid())
+  progress        Float            @default(0)
+  averageScore    Float            @default(0)
+  lastAccessedAt  DateTime?
+  completedAt     DateTime?
+  isCompleted     Boolean          @default(false)
+  enrolledAt      DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roadmapId       String
+  roadmap         Roadmap          @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roadmapId])
+  @@map("user_roadmap_enrollments")
+}
+
+model Tag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  color       String?
+  createdAt   DateTime @default(now())
+
+  roadmapTags RoadmapTag[]
+
+  @@map("tags")
+}
+
+model RoadmapTag {
+  id        String  @id @default(cuid())
+  roadmapId String
+  tagId     String
+  
+  roadmap   Roadmap @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([roadmapId, tagId])
+  @@map("roadmap_tags")
+}
+
+model UserLessonProgress {
+  id              String    @id @default(cuid())
+  score           Float?
+  isCompleted     Boolean   @default(false)
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId        String
+  lesson          Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("user_lesson_progress")
 }

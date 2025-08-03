@@ -4,10 +4,14 @@ import { NotFoundError } from '@/cores/error.handler'
 import { Application, NextFunction, Router, Response, Request } from 'express'
 import { ErrorHandler } from '@/cores/error.handler'
 import { ResponseHandler } from '@/cores/response.handler'
-import { logRequest, logApp } from '@/utils/logger.utils'
+import { logRequest } from '@/utils/logger.utils'
 import { StatusCodes } from 'http-status-codes'
 import { healthRouter } from './health.route'
 import authRouter from './auth.route'
+import categoryRouter from './category.route'
+import roadmapRouter from './roadmap.route'
+import enrollmentRouter from './enrollment.route'
+import progressRouter from './progress.route'
 
 export const apiRouter = (app: Application, router: Router) => {
   const API_PREFIX = '/api/v1'
@@ -17,6 +21,10 @@ export const apiRouter = (app: Application, router: Router) => {
 
   // API routes
   router.use('/auth', authRouter)
+  router.use('/categories', categoryRouter)
+  router.use('/roadmaps', roadmapRouter)
+  router.use('/', enrollmentRouter) // Enrollment routes use /roadmaps and /users prefixes
+  router.use('/', progressRouter) // Progress routes use /lessons, /roadmaps, /users prefixes
 
   app.use(API_PREFIX, router)
 

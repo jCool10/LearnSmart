@@ -139,8 +139,6 @@ export const validate = (schema: ValidationSchema, validator: Validator = new Si
   return (req: Request, res: Response, next: NextFunction) => {
     const errors: Array<{ field: string; message: string; value?: any }> = []
 
-    console.log(req.body)
-
     // Validate body
     if (schema.body) {
       const bodyResult = validator.validate(req.body, schema.body)

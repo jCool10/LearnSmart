@@ -33,26 +33,31 @@ JWT_REFRESH_EXPIRATION_DAYS=30
 ## Các lệnh Docker
 
 ### 1. Khởi chạy PostgreSQL
+
 ```bash
 docker-compose up -d postgres
 ```
 
 ### 2. Khởi chạy cả PostgreSQL và pgAdmin
+
 ```bash
 docker-compose up -d
 ```
 
 ### 3. Xem logs
+
 ```bash
 docker-compose logs postgres
 ```
 
 ### 4. Dừng services
+
 ```bash
 docker-compose down
 ```
 
 ### 5. Dừng và xóa volumes (data sẽ bị mất)
+
 ```bash
 docker-compose down -v
 ```
@@ -94,11 +99,13 @@ npm run db:push
 ## Development Workflow
 
 1. Start Docker containers:
+
    ```bash
    docker-compose up -d
    ```
 
 2. Run migrations:
+
    ```bash
    npm run db:migrate
    ```
@@ -112,4 +119,4 @@ npm run db:push
 
 - Thay đổi passwords mạnh hơn
 - Sử dụng environment variables từ hosting provider
-- Cân nhắc sử dụng managed PostgreSQL service 
+- Cân nhắc sử dụng managed PostgreSQL service

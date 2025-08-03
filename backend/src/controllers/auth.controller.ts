@@ -12,7 +12,6 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   }
 
   register = catchAsync(async (req: Request, res: Response) => {
-    const registerData: RegisterDto = this.extractCreateData(req)
     const result = await this.authService.registerLegacy(req) // Using legacy method during migration
 
     ResponseHandler.success(res, {
@@ -23,8 +22,6 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   })
 
   login = catchAsync(async (req: Request, res: Response) => {
-    console.log(req.body)
-    const loginData: LoginDto = req.body
     const result = await this.authService.loginLegacy(req) // Using legacy method during migration
 
     ResponseHandler.success(res, {
@@ -43,7 +40,6 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   })
 
   refreshTokens = catchAsync(async (req: Request, res: Response) => {
-    const refreshData: RefreshTokenDto = req.body
     const result = await this.authService.refreshTokensLegacy(req) // Using legacy method during migration
 
     ResponseHandler.success(res, {
@@ -53,7 +49,6 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   })
 
   forgotPassword = catchAsync(async (req: Request, res: Response) => {
-    const forgotPasswordData: ForgotPasswordDto = req.body
     const result = await this.authService.forgotPasswordLegacy(req) // Using legacy method during migration
 
     ResponseHandler.success(res, {
@@ -63,7 +58,6 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   })
 
   resetPassword = catchAsync(async (req: Request, res: Response) => {
-    const resetPasswordData: ResetPasswordDto = req.body
     const result = await this.authService.resetPasswordLegacy(req) // Using legacy method during migration
 
     ResponseHandler.success(res, {

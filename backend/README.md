@@ -24,6 +24,7 @@ Express.js backend với Prisma ORM, PostgreSQL, và TypeScript theo kiến trú
 ## 🛠️ Cài đặt
 
 1. **Clone repository và install dependencies:**
+
 ```bash
 git clone <repository-url>
 cd backend
@@ -31,12 +32,14 @@ yarn install
 ```
 
 2. **Setup environment variables:**
+
 ```bash
 cp .env.example .env
 # Chỉnh sửa .env với thông tin database của bạn
 ```
 
 3. **Setup database:**
+
 ```bash
 # Tạo database và run migrations
 yarn db:push
@@ -49,6 +52,7 @@ yarn db:generate
 ```
 
 4. **Start development server:**
+
 ```bash
 yarn dev
 ```
@@ -58,15 +62,18 @@ Server sẽ chạy tại: `http://localhost:8080`
 ## 📚 API Documentation
 
 ### Base URL
+
 ```
 http://localhost:8080/api/v1
 ```
 
 ### Health Check
+
 - `GET /health` - Basic health check
 - `GET /health/detailed` - Detailed health check với database status
 
 ### Users API
+
 - `POST /users` - Tạo user mới
 - `POST /users/with-profile` - Tạo user với profile
 - `GET /users` - Lấy danh sách users (có pagination)
@@ -78,6 +85,7 @@ http://localhost:8080/api/v1
 - `DELETE /users/:id` - Xóa user
 
 ### Posts API
+
 - `POST /posts` - Tạo bài viết mới
 - `GET /posts` - Lấy danh sách bài viết
 - `GET /posts/published` - Lấy bài viết đã publish
@@ -92,6 +100,7 @@ http://localhost:8080/api/v1
 - `DELETE /posts/:id` - Xóa bài viết
 
 ### Profiles API
+
 - `POST /profiles` - Tạo profile mới
 - `GET /profiles` - Lấy danh sách profiles
 - `GET /profiles/search?q=term` - Tìm kiếm profiles
@@ -104,17 +113,21 @@ http://localhost:8080/api/v1
 - `DELETE /profiles/user/:userId` - Xóa profile theo user ID
 
 ### Pagination Parameters
+
 Tất cả API list đều support pagination:
+
 - `page` - Số trang (default: 1)
 - `limit` - Số items per page (default: 10, max: 100)
 
 ### Response Format
+
 ```json
 {
   "statusCode": 200,
   "message": "Success message",
   "data": {}, // hoặc []
-  "meta": {    // chỉ có với pagination
+  "meta": {
+    // chỉ có với pagination
     "total": 100,
     "page": 1,
     "limit": 10,
@@ -205,27 +218,32 @@ yarn prettier:fix
 ## 🌟 Tính năng nổi bật
 
 ### 1. Clean Architecture
+
 - **Controllers**: Xử lý HTTP requests/responses
 - **Services**: Chứa business logic
 - **Repositories**: Truy cập database
 
 ### 2. Type Safety
+
 - Prisma generated types
 - TypeScript strict mode
 - Interface-based development
 
 ### 3. Error Handling
+
 - Centralized error handling
 - Custom error classes
 - Proper HTTP status codes
 
 ### 4. Database Features
+
 - Connection pooling
 - Query logging
 - Health checks
 - Graceful shutdown
 
 ### 5. Developer Experience
+
 - Hot reload với nodemon
 - Detailed logging
 - Environment-based configuration
@@ -245,4 +263,4 @@ Xem file `.env.example` để biết tất cả environment variables cần thi�
 
 ## 📜 License
 
-This project is licensed under the ISC License. 
+This project is licensed under the ISC License.
