@@ -27,12 +27,13 @@ const structuredFormat = winston.format((info) => {
   }
 
   // Add request context if available
-  if (info.requestId || info.method || info.url) {
+  if (info.requestId || info.method || info.url || info.userId) {
     structured.request = {}
     if (info.requestId) structured.request.requestId = info.requestId
     if (info.method) structured.request.method = info.method
     if (info.url) structured.request.url = info.url
     if (info.ip) structured.request.ip = info.ip
+    if (info.userId) structured.request.userId = info.userId
   }
 
   // Add response context for HTTP requests
@@ -53,6 +54,9 @@ const structuredFormat = winston.format((info) => {
   if (info.slowRequest) structured.performance = { slow_request: true }
   if (info.userAgent) structured.meta = { userAgent: info.userAgent }
 
+  if (info.query) structured.request.query = info.query
+  if (info.body) structured.request.body = info.body
+
   return structured
 })
 
@@ -63,7 +67,7 @@ const consoleFormat = combine(
   timestampFormat,
   enumerateErrorFormat(),
   configs.app.env === 'development' ? colorize() : uncolorize(),
-  printf(({ level, message, timestamp, requestId, method, url, statusCode, duration }) => {
+  printf(({ level, message, timestamp, requestId, method, url, statusCode, duration, userId }) => {
     let logMessage = `${timestamp} [${level}]: `
 
     // Add request context if available
@@ -73,6 +77,7 @@ const consoleFormat = combine(
       if (statusCode) requestInfo.push(`${statusCode}`)
       if (duration) requestInfo.push(`${duration}`)
       if (requestId) requestInfo.push(`${requestId}`)
+      if (userId) requestInfo.push(`${userId}`)
 
       if (requestInfo.length > 0) {
         logMessage += `${requestInfo.join(' - ')}`
