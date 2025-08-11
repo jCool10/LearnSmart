@@ -9,7 +9,9 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
   const requestId = crypto.randomBytes(8).toString('hex')
 
   // Set requestId for the request
-  req.requestId = requestId
+  req.requestId = (req.headers['x-request-id'] as string) || requestId
+
+  res.setHeader('X-Request-ID', req.requestId)
 
   logger.info('Request started', {
     requestId: req.requestId,
@@ -26,11 +28,14 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
       requestId: req.requestId,
       method: req.method,
       url: req.originalUrl,
-      statusCode: res.statusCode,
+      status: res.statusCode,
       duration: `${duration}ms`,
       userAgent: req.get('user-agent'),
       ip: req.ip,
-      context: 'HttpRequest'
+      context: 'HttpRequest',
+      userId: req.user?.id,
+      query: Object.keys(req.query).length ? req.query : undefined,
+      body: Object.keys(req.body || {}).length ? req.body : undefined
     }
 
     if (res.statusCode >= 400) {

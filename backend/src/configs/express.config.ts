@@ -12,6 +12,8 @@ import { API } from '@/constants'
 const limiter = rateLimit(configs.rate_limit)
 
 const expressConfig = (app: Application): void => {
+  app.use(requestLogger)
+
   // Security middleware
   app.use(
     helmet({
@@ -21,7 +23,6 @@ const expressConfig = (app: Application): void => {
   )
 
   // Request logging middleware
-  app.use(requestLogger)
 
   // CORS configuration
   app.use(cors(configs.cors))

@@ -23,8 +23,8 @@ export const apiRouter = (app: Application, router: Router) => {
   router.use('/auth', authRouter)
   router.use('/categories', categoryRouter)
   router.use('/roadmaps', roadmapRouter)
-  router.use('/', enrollmentRouter) // Enrollment routes use /roadmaps and /users prefixes
-  router.use('/', progressRouter) // Progress routes use /lessons, /roadmaps, /users prefixes
+  router.use('/', enrollmentRouter)
+  router.use('/', progressRouter)
 
   app.use(API_PREFIX, router)
 

@@ -8,6 +8,7 @@ import logger from './configs/logger.config'
 import { configs } from './configs'
 import { apiRouter } from './routes'
 import { connectDatabase, disconnectDatabase } from './configs/database.config'
+import { setupSwagger } from './configs/swagger.config'
 
 const PORT = configs.app.port
 const app = express()
@@ -16,6 +17,9 @@ const server = createServer(app)
 
 // Apply express configuration
 expressConfig(app)
+
+// Setup Swagger documentation
+setupSwagger(app)
 
 // Setup API routes
 apiRouter(app, router)
