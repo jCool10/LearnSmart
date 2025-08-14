@@ -1,282 +1,205 @@
-'use client'
-
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
 import { authAPI } from '@/lib/axios'
-import { useAuth } from '@/contexts/AuthContext'
-import {
-  LoginDto,
-  RegisterDto,
-  ResetPasswordDto,
-  ApiResponse,
+import { 
+  LoginDto, 
+  RegisterDto, 
+  ResetPasswordDto, 
+  UserDto, 
   AuthResponseDto,
-  UserDto,
+  ApiResponse 
 } from '@/types/auth.types'
+import { useAuth } from '@/contexts/AuthContext'
 
-// Query keys for consistent caching
-export const AUTH_QUERY_KEYS = {
-  currentUser: ['auth', 'currentUser'] as const,
-  profile: ['auth', 'profile'] as const,
-} as const
+// Query keys
+export const authKeys = {
+  all: ['auth'] as const,
+  user: () => [...authKeys.all, 'user'] as const,
+  currentUser: () => [...authKeys.user(), 'current'] as const,
+}
 
-// Hook for current user query
+// Get current user query
 export const useCurrentUser = () => {
   const { isAuthenticated } = useAuth()
   
   return useQuery({
-    queryKey: AUTH_QUERY_KEYS.currentUser,
-    queryFn: async (): Promise<UserDto> => {
-      const response: ApiResponse<UserDto> = await authAPI.getCurrentUser()
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to fetch user data')
-      }
-      return response.data
-    },
-    enabled: isAuthenticated, // Only run if user is authenticated
-    staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
+    queryKey: authKeys.currentUser(),
+    queryFn: () => authAPI.getCurrentUser(),
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000, // 5 minutes
     retry: (failureCount, error: any) => {
-      // Don't retry if it's an auth error
+      // Don't retry on 401 errors
       if (error?.response?.status === 401) {
         return false
       }
-      return failureCount < 3
+      return failureCount < 2
     },
   })
 }
 
-// Hook for login mutation
+// Login mutation
 export const useLogin = () => {
-  const router = useRouter()
   const queryClient = useQueryClient()
-  const { login: authLogin } = useAuth()
-  
+  const { login: contextLogin } = useAuth()
+
   return useMutation({
-    mutationFn: async (credentials: LoginDto): Promise<AuthResponseDto> => {
-      // Use auth context login function
-      await authLogin(credentials)
-      
-      // Return data for consistency (auth context handles storage)
-      const response: ApiResponse<UserDto> = await authAPI.getCurrentUser()
-      return {
-        user: response.data,
-        tokens: {
-          access: { token: '', expires: '' },
-          refresh: { token: '', expires: '' }
-        }
-      }
+    mutationFn: async (credentials: LoginDto) => {
+      // Use context login which handles token storage and state updates
+      await contextLogin(credentials)
+      return { success: true }
     },
-    onSuccess: (data) => {
-      // Update cache with user data
-      queryClient.setQueryData(AUTH_QUERY_KEYS.currentUser, data.user)
-      
-      // Redirect to dashboard or intended page
-      const redirectTo = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
-      sessionStorage.removeItem('redirectAfterLogin')
-      router.push(redirectTo)
+    onSuccess: () => {
+      // Invalidate and refetch user data
+      queryClient.invalidateQueries({ queryKey: authKeys.user() })
+      // Invalidate all queries that might depend on auth state
+      queryClient.invalidateQueries()
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Login mutation error:', error)
     },
   })
 }
 
-// Hook for register mutation
+// Register mutation
 export const useRegister = () => {
-  const router = useRouter()
   const queryClient = useQueryClient()
-  const { register: authRegister } = useAuth()
-  
+  const { register: contextRegister } = useAuth()
+
   return useMutation({
-    mutationFn: async (userData: RegisterDto): Promise<AuthResponseDto> => {
-      // Use auth context register function
-      await authRegister(userData)
-      
-      // Return data for consistency
-      const response: ApiResponse<UserDto> = await authAPI.getCurrentUser()
-      return {
-        user: response.data,
-        tokens: {
-          access: { token: '', expires: '' },
-          refresh: { token: '', expires: '' }
-        }
-      }
+    mutationFn: async (userData: RegisterDto) => {
+      // Use context register which handles token storage and state updates
+      await contextRegister(userData)
+      return { success: true }
     },
-    onSuccess: (data) => {
-      // Update cache with user data
-      queryClient.setQueryData(AUTH_QUERY_KEYS.currentUser, data.user)
-      
-      // Redirect to dashboard or email verification prompt
-      if (!data.user.isEmailVerified) {
-        router.push('/verify-email')
-      } else {
-        router.push('/dashboard')
-      }
+    onSuccess: () => {
+      // Invalidate and refetch user data
+      queryClient.invalidateQueries({ queryKey: authKeys.user() })
+      // Invalidate all queries that might depend on auth state
+      queryClient.invalidateQueries()
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Register mutation error:', error)
     },
   })
 }
 
-// Hook for logout mutation
+// Logout mutation
 export const useLogout = () => {
-  const router = useRouter()
   const queryClient = useQueryClient()
-  const { logout: authLogout } = useAuth()
-  
+  const { logout: contextLogout } = useAuth()
+
   return useMutation({
-    mutationFn: async (): Promise<void> => {
-      await authLogout()
+    mutationFn: async () => {
+      await contextLogout()
+      return { success: true }
     },
     onSuccess: () => {
-      // Clear all auth-related cache
-      queryClient.removeQueries({ queryKey: ['auth'] })
-      queryClient.clear() // Optionally clear all cache
-      
-      // Redirect to login page
-      router.push('/login')
+      // Clear all cached data on logout
+      queryClient.clear()
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Logout mutation error:', error)
-      // Still redirect even if logout API fails
-      queryClient.removeQueries({ queryKey: ['auth'] })
-      router.push('/login')
+      // Even if logout fails on server, clear local cache
+      queryClient.clear()
     },
   })
 }
 
-// Hook for forgot password mutation
+// Forgot password mutation
 export const useForgotPassword = () => {
-  const { forgotPassword } = useAuth()
-  
+  const { forgotPassword: contextForgotPassword } = useAuth()
+
   return useMutation({
-    mutationFn: async (email: string): Promise<void> => {
-      await forgotPassword(email)
+    mutationFn: async (email: string) => {
+      await contextForgotPassword(email)
+      return { success: true }
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Forgot password mutation error:', error)
     },
   })
 }
 
-// Hook for reset password mutation
+// Reset password mutation
 export const useResetPassword = () => {
-  const router = useRouter()
-  const { resetPassword } = useAuth()
-  
+  const { resetPassword: contextResetPassword } = useAuth()
+
   return useMutation({
-    mutationFn: async (data: ResetPasswordDto): Promise<void> => {
-      await resetPassword(data)
+    mutationFn: async (data: ResetPasswordDto) => {
+      await contextResetPassword(data)
+      return { success: true }
     },
-    onSuccess: () => {
-      // Redirect to login page after successful password reset
-      router.push('/login?message=password-reset-success')
-    },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Reset password mutation error:', error)
     },
   })
 }
 
-// Hook for verify email mutation
+// Verify email mutation
 export const useVerifyEmail = () => {
   const queryClient = useQueryClient()
-  const { verifyEmail, user } = useAuth()
-  
+  const { verifyEmail: contextVerifyEmail } = useAuth()
+
   return useMutation({
-    mutationFn: async (token: string): Promise<void> => {
-      await verifyEmail(token)
+    mutationFn: async (token: string) => {
+      await contextVerifyEmail(token)
+      return { success: true }
     },
     onSuccess: () => {
-      // Update user cache to reflect email verification
-      if (user) {
-        const updatedUser = { ...user, isEmailVerified: true }
-        queryClient.setQueryData(AUTH_QUERY_KEYS.currentUser, updatedUser)
-      }
+      // Refetch current user to get updated verification status
+      queryClient.invalidateQueries({ queryKey: authKeys.currentUser() })
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Verify email mutation error:', error)
     },
   })
 }
 
-// Hook for send verification email mutation
+// Send verification email mutation
 export const useSendVerificationEmail = () => {
-  const { sendVerificationEmail } = useAuth()
-  
+  const { sendVerificationEmail: contextSendVerificationEmail } = useAuth()
+
   return useMutation({
-    mutationFn: async (): Promise<void> => {
-      await sendVerificationEmail()
+    mutationFn: async () => {
+      await contextSendVerificationEmail()
+      return { success: true }
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Send verification email mutation error:', error)
     },
   })
 }
 
-// Hook for refresh tokens mutation
+// Refresh tokens mutation (usually handled automatically by interceptor)
 export const useRefreshTokens = () => {
-  const { refreshTokens } = useAuth()
-  
+  const queryClient = useQueryClient()
+  const { refreshTokens: contextRefreshTokens } = useAuth()
+
   return useMutation({
-    mutationFn: async (): Promise<void> => {
-      await refreshTokens()
+    mutationFn: async () => {
+      await contextRefreshTokens()
+      return { success: true }
     },
-    onError: (error: any) => {
+    onSuccess: () => {
+      // Invalidate current user query to refetch with new token
+      queryClient.invalidateQueries({ queryKey: authKeys.currentUser() })
+    },
+    onError: (error) => {
       console.error('Refresh tokens mutation error:', error)
+      // On refresh failure, clear all data and redirect to login
+      queryClient.clear()
     },
   })
 }
 
-// Combined hook for common auth operations
-export const useAuthOperations = () => {
-  const login = useLogin()
-  const register = useRegister()
-  const logout = useLogout()
-  const forgotPassword = useForgotPassword()
-  const resetPassword = useResetPassword()
-  const verifyEmail = useVerifyEmail()
-  const sendVerificationEmail = useSendVerificationEmail()
-  const currentUser = useCurrentUser()
-  
+// Combined auth status hook
+export const useAuthStatus = () => {
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const { data: currentUserData, isLoading: isLoadingCurrentUser } = useCurrentUser()
+
   return {
-    // Queries
-    currentUser,
-    
-    // Mutations
-    login,
-    register,
-    logout,
-    forgotPassword,
-    resetPassword,
-    verifyEmail,
-    sendVerificationEmail,
-    
-    // Loading states
-    isLoggingIn: login.isPending,
-    isRegistering: register.isPending,
-    isLoggingOut: logout.isPending,
-    isSendingForgotPassword: forgotPassword.isPending,
-    isResettingPassword: resetPassword.isPending,
-    isVerifyingEmail: verifyEmail.isPending,
-    isSendingVerificationEmail: sendVerificationEmail.isPending,
-    
-    // Error states
-    loginError: login.error,
-    registerError: register.error,
-    logoutError: logout.error,
-    forgotPasswordError: forgotPassword.error,
-    resetPasswordError: resetPassword.error,
-    verifyEmailError: verifyEmail.error,
-    sendVerificationEmailError: sendVerificationEmail.error,
-    
-    // Success states
-    isLoginSuccess: login.isSuccess,
-    isRegisterSuccess: register.isSuccess,
-    isLogoutSuccess: logout.isSuccess,
-    isForgotPasswordSuccess: forgotPassword.isSuccess,
-    isResetPasswordSuccess: resetPassword.isSuccess,
-    isVerifyEmailSuccess: verifyEmail.isSuccess,
-    isSendVerificationEmailSuccess: sendVerificationEmail.isSuccess,
+    user: currentUserData?.data || user,
+    isAuthenticated,
+    isLoading: isLoading || isLoadingCurrentUser,
+    isVerified: user?.isEmailVerified || false,
   }
 }

@@ -13,46 +13,66 @@ import {
   CheckCircle,
   Circle
 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { useUserEnrolledRoadmaps } from '@/hooks/useRoadmapQueries'
 
 export const LearningPathsPreview: React.FC = () => {
-  const learningPaths = [
-    {
-      id: 1,
-      title: 'Lập trình JavaScript từ cơ bản đến nâng cao',
-      description: 'Học JavaScript từ những khái niệm cơ bản đến các kỹ thuật nâng cao',
-      progress: 65,
-      totalTopics: 20,
-      completedTopics: 13,
-      estimatedTime: '6 tuần',
-      difficulty: 'Trung bình',
-      color: 'from-blue-500 to-blue-600',
-      nextTopic: 'Promises và Async/Await'
-    },
-    {
-      id: 2,
-      title: 'React.js và Ecosystem',
-      description: 'Xây dựng ứng dụng web hiện đại với React và các thư viện liên quan',
-      progress: 30,
-      totalTopics: 15,
-      completedTopics: 5,
-      estimatedTime: '4 tuần',
-      difficulty: 'Nâng cao',
-      color: 'from-green-500 to-green-600',
-      nextTopic: 'React Hooks'
-    },
-    {
-      id: 3,
-      title: 'UI/UX Design Fundamentals',
-      description: 'Học thiết kế giao diện người dùng và trải nghiệm người dùng',
-      progress: 10,
-      totalTopics: 12,
-      completedTopics: 1,
-      estimatedTime: '3 tuần',
-      difficulty: 'Cơ bản',
-      color: 'from-purple-500 to-purple-600',
-      nextTopic: 'Design Principles'
-    }
-  ]
+  const { user } = useAuth()
+  
+  // Fetch user's enrolled roadmaps
+  const { 
+    data: enrolledRoadmapsData, 
+    isLoading: isLoadingRoadmaps 
+  } = useUserEnrolledRoadmaps(user?.id || '', 'enrolled', { page: 1, limit: 3 })
+  
+  const learningPaths = React.useMemo(() => {
+    if (!enrolledRoadmapsData?.data?.roadmaps) return []
+    
+    return enrolledRoadmapsData.data.roadmaps.map((roadmap) => {
+      const enrollment = roadmap.enrollment
+      const progress = enrollment?.progress || 0
+      const totalLessons = roadmap.lessons?.length || 0
+      const completedLessons = Math.round((progress / 100) * totalLessons)
+      
+      // Find next incomplete lesson
+      const nextLesson = roadmap.lessons?.find(lesson => !lesson.progress?.isCompleted)
+      
+      // Map difficulty to Vietnamese
+      const difficultyMap = {
+        'beginner': 'Cơ bản',
+        'intermediate': 'Trung bình',
+        'advanced': 'Nâng cao'
+      }
+      
+      // Assign colors based on category or use default
+      const colorMap = {
+        'javascript': 'from-yellow-500 to-yellow-600',
+        'react': 'from-blue-500 to-blue-600',
+        'vue': 'from-green-500 to-green-600',
+        'angular': 'from-red-500 to-red-600',
+        'nodejs': 'from-green-600 to-green-700',
+        'python': 'from-blue-600 to-blue-700',
+        'design': 'from-purple-500 to-purple-600'
+      }
+      
+      const categoryValue = roadmap.category?.value?.toLowerCase() || ''
+      const color = colorMap[categoryValue as keyof typeof colorMap] || 'from-gray-500 to-gray-600'
+      
+      return {
+        id: roadmap.id,
+        title: roadmap.title,
+        description: roadmap.description,
+        progress: Math.round(progress),
+        totalTopics: totalLessons,
+        completedTopics: completedLessons,
+        estimatedTime: `${Math.ceil(roadmap.estimatedTime / 7)} tuần`,
+        difficulty: difficultyMap[roadmap.difficulty] || roadmap.difficulty,
+        color,
+        nextTopic: nextLesson?.title || 'Không có bài học tiếp theo',
+        category: roadmap.category?.label
+      }
+    })
+  }, [enrolledRoadmapsData])
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -67,6 +87,35 @@ export const LearningPathsPreview: React.FC = () => {
     }
   }
 
+  if (isLoadingRoadmaps) {
+    return (
+      <div className="p-6">
+        <div className="space-y-4">
+          {[...Array(3)].map((_, index) => (
+            <div 
+              key={index}
+              className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 animate-pulse"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-3"></div>
+                </div>
+              </div>
+              <div className="mb-3">
+                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full w-full"></div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-6">
       {learningPaths.length === 0 ? (
@@ -76,11 +125,11 @@ export const LearningPathsPreview: React.FC = () => {
             Chưa có lộ trình học tập
           </h3>
           <p className="text-gray-500 dark:text-gray-400 mb-4">
-            Tạo lộ trình học tập đầu tiên của bạn với sự hỗ trợ của AI
+            Khám phá và đăng ký các lộ trình học tập với sự hỗ trợ của AI
           </p>
-          <Link href="/learning-paths/create">
+          <Link href="/roadmap">
             <Button>
-              Tạo lộ trình mới
+              Khám phá lộ trình
             </Button>
           </Link>
         </div>
@@ -154,13 +203,13 @@ export const LearningPathsPreview: React.FC = () => {
 
               {/* Actions */}
               <div className="flex items-center justify-between">
-                <Link href={`/learning-paths/${path.id}`}>
+                <Link href={`/roadmap/${path.id}`}>
                   <Button variant="outline" size="sm">
                     Xem chi tiết
                   </Button>
                 </Link>
                 {path.progress < 100 ? (
-                  <Link href={`/learning-paths/${path.id}/continue`}>
+                  <Link href={`/roadmap/${path.id}`}>
                     <Button size="sm" className="flex items-center space-x-1">
                       <Play className="w-4 h-4" />
                       <span>Tiếp tục học</span>
@@ -178,7 +227,7 @@ export const LearningPathsPreview: React.FC = () => {
 
           {/* View All Link */}
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <Link href="/learning-paths">
+            <Link href="/roadmap">
               <Button variant="ghost" className="w-full flex items-center justify-center space-x-2">
                 <span>Xem tất cả lộ trình</span>
                 <ArrowRight className="w-4 h-4" />

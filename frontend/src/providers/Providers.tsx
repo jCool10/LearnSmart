@@ -4,6 +4,8 @@ import React, { ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { RoadmapProvider } from '@/contexts/RoadmapContext'
+import { ProgressProvider } from '@/contexts/ProgressContext'
 
 // Create a client
 const queryClient = new QueryClient({
@@ -59,7 +61,11 @@ export const Providers: React.FC<ProvidersProps> = ({ children }) => {
         disableTransitionOnChange={false}
       >
         <AuthProvider>
-          {children}
+          <RoadmapProvider>
+            <ProgressProvider>
+              {children}
+            </ProgressProvider>
+          </RoadmapProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

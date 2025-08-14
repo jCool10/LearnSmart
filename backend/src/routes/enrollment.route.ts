@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { enrollmentController } from '@/controllers'
 import { auth, authorize } from '@/middlewares/auth.middleware'
-import { validate } from '@/middlewares/validation.middleware'
+import { validateJoi, commonJoiSchemas } from '@/middlewares/joi.validation.middleware'
 import {
   enrollmentQuerySchema,
   updateProgressSchema,
@@ -16,7 +16,12 @@ const router = Router()
  * @desc    Enroll user in roadmap
  * @access  Private
  */
-router.post('/roadmaps/:roadmapId/enroll', auth(), validate({ params: idParamSchema }), enrollmentController.enrollUser)
+router.post(
+  '/roadmaps/:roadmapId/enroll',
+  auth(),
+  validateJoi({ params: commonJoiSchemas.roadmapIdParam }),
+  enrollmentController.enrollUser
+)
 
 /**
  * @swagger
@@ -62,7 +67,7 @@ router.post('/roadmaps/:roadmapId/enroll', auth(), validate({ params: idParamSch
 router.delete(
   '/roadmaps/:roadmapId/enroll',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.roadmapIdParam }),
   enrollmentController.unenrollUser
 )
 
@@ -117,7 +122,7 @@ router.delete(
 router.get(
   '/roadmaps/:roadmapId/enrollment-status',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.roadmapIdParam }),
   enrollmentController.checkEnrollmentStatus
 )
 
@@ -164,7 +169,7 @@ router.get(
 router.get(
   '/roadmaps/:roadmapId/enrollment',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.roadmapIdParam }),
   enrollmentController.getEnrollmentDetails
 )
 
@@ -240,8 +245,8 @@ router.get(
 router.get(
   '/users/:userId/enrollments',
   auth(),
-  validate({
-    params: idParamSchema,
+  validateJoi({
+    params: commonJoiSchemas.userIdParam,
     query: enrollmentQuerySchema
   }),
   enrollmentController.getUserEnrollments
@@ -311,8 +316,8 @@ router.get(
 router.put(
   '/roadmaps/:roadmapId/progress',
   auth(),
-  validate({
-    params: idParamSchema,
+  validateJoi({
+    params: commonJoiSchemas.roadmapIdParam,
     body: updateProgressSchema
   }),
   enrollmentController.updateEnrollmentProgress
@@ -361,7 +366,7 @@ router.put(
 router.post(
   '/roadmaps/:roadmapId/recalculate-progress',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.roadmapIdParam }),
   enrollmentController.recalculateProgress
 )
 
@@ -428,7 +433,12 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/users/:userId/stats', auth(), validate({ params: idParamSchema }), enrollmentController.getUserStats)
+router.get(
+  '/users/:userId/stats',
+  auth(),
+  validateJoi({ params: commonJoiSchemas.userIdParam }),
+  enrollmentController.getUserStats
+)
 
 /**
  * @swagger
@@ -512,7 +522,7 @@ router.get('/enrollments/recent', auth(), authorize('admin'), enrollmentControll
  */
 router.get(
   '/roadmaps/:roadmapId/completion-rate',
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.roadmapIdParam }),
   enrollmentController.getRoadmapCompletionRate
 )
 
@@ -575,7 +585,7 @@ router.get(
 router.get(
   '/users/:userId/streak',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.userIdParam }),
   enrollmentController.getUserLearningStreak
 )
 
@@ -660,8 +670,8 @@ router.post(
   '/roadmaps/:roadmapId/bulk-enroll',
   auth(),
   authorize('admin'),
-  validate({
-    params: idParamSchema,
+  validateJoi({
+    params: commonJoiSchemas.roadmapIdParam,
     body: bulkEnrollmentSchema
   }),
   enrollmentController.bulkEnrollUsers

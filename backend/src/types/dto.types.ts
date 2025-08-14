@@ -28,7 +28,7 @@ export interface PaginatedResponseDto<T> {
 export interface RegisterDto {
   email: string
   password: string
-  name: string
+  username: string // Changed from 'name' to match frontend
 }
 
 export interface LoginDto {
@@ -71,21 +71,21 @@ export interface TokensDto {
 
 // User DTOs
 export interface UserDto extends BaseDto {
-  name: string
+  username: string // Changed from 'name' to match frontend
   email: string
   role: 'user' | 'admin'
   isEmailVerified: boolean
 }
 
 export interface CreateUserDto {
-  name: string
+  username: string // Changed from 'name' to match frontend
   email: string
   password: string
   role?: 'user' | 'admin'
 }
 
 export interface UpdateUserDto {
-  name?: string
+  username?: string // Changed from 'name' to match frontend
   email?: string
   role?: 'user' | 'admin'
 }

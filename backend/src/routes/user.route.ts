@@ -317,6 +317,103 @@ userRouter.get(
   userController.getUserByEmail
 )
 
+/**
+ * @swagger
+ * /users/{id}/roadmaps:
+ *   get:
+ *     summary: Get user's roadmaps
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [enrolled, completed, all]
+ *           default: all
+ *         description: Filter roadmaps by enrollment status
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: User roadmaps retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/PaginatedResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           progress:
+ *                             type: number
+ *                           averageScore:
+ *                             type: number
+ *                           lastAccessedAt:
+ *                             type: string
+ *                             format: date-time
+ *                           completedAt:
+ *                             type: string
+ *                             format: date-time
+ *                           isCompleted:
+ *                             type: boolean
+ *                           enrolledAt:
+ *                             type: string
+ *                             format: date-time
+ *                           roadmap:
+ *                             $ref: '#/components/schemas/Roadmap'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+userRouter.get(
+  '/:id/roadmaps',
+  auth('getUsers'),
+  validate(userValidations.getUserRoadmaps),
+  userController.getUserRoadmaps
+)
+
 userRouter.put('/:id', auth('manageUsers'), validate(userValidations.updateUser), userController.updateUser)
 userRouter.delete('/:id', auth('manageUsers'), validate(userValidations.deleteUser), userController.deleteUser)
 

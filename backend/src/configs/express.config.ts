@@ -28,7 +28,7 @@ const expressConfig = (app: Application): void => {
   app.use(cors(configs.cors))
 
   // Rate limiting for API routes
-  // app.use(API.PREFIX, limiter)
+  app.use(API.PREFIX, limiter)
 
   // Body parsing middleware with configurable limits
   app.use(

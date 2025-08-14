@@ -27,8 +27,8 @@ export interface RoadmapCreateDto {
   title: string
   description: string
   categoryId: string
-  difficulty: DifficultyLevel
-  estimatedTime: string
+  difficulty: 'beginner' | 'intermediate' | 'advanced' // Match frontend types
+  estimatedTime: number // Changed from string to number to match frontend
   tags?: string[]
   lessons?: LessonCreateDto[]
 }
@@ -37,14 +37,14 @@ export interface RoadmapUpdateDto {
   title?: string
   description?: string
   categoryId?: string
-  difficulty?: DifficultyLevel
-  estimatedTime?: string
+  difficulty?: 'beginner' | 'intermediate' | 'advanced' // Match frontend types
+  estimatedTime?: number // Changed from string to number to match frontend
   isActive?: boolean
 }
 
 export interface RoadmapQueryDto {
   category?: string
-  difficulty?: DifficultyLevel
+  difficulty?: 'beginner' | 'intermediate' | 'advanced' // Match frontend types
   search?: string
   userId?: string
   page?: number
@@ -60,15 +60,15 @@ export interface RoadmapResponseDto {
     value: string
     label: string
   }
-  difficulty: DifficultyLevel
+  difficulty: 'beginner' | 'intermediate' | 'advanced' // Match frontend types
   totalLessons: number
-  estimatedTime: string
+  estimatedTime: number // Changed from string to number to match frontend
   rating: number
   enrolledUsers: number
   tags: string[]
   creator: {
     id: string
-    name: string
+    username: string // Changed from 'name' to match frontend
   }
   userEnrollment?: {
     isEnrolled: boolean

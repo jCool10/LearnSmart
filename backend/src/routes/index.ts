@@ -12,6 +12,7 @@ import categoryRouter from './category.route'
 import roadmapRouter from './roadmap.route'
 import enrollmentRouter from './enrollment.route'
 import progressRouter from './progress.route'
+import { userRouter } from './user.route'
 
 export const apiRouter = (app: Application, router: Router) => {
   const API_PREFIX = '/api/v1'
@@ -23,6 +24,7 @@ export const apiRouter = (app: Application, router: Router) => {
   router.use('/auth', authRouter)
   router.use('/categories', categoryRouter)
   router.use('/roadmaps', roadmapRouter)
+  router.use('/users', userRouter)
   router.use('/', enrollmentRouter)
   router.use('/', progressRouter)
 
@@ -49,7 +51,7 @@ export const apiRouter = (app: Application, router: Router) => {
   })
 
   // Final error handler - only log here to avoid duplicates
-  app.use((err: ErrorHandler, req: Request, res: Response, next: NextFunction) => {
+  app.use((err: ErrorHandler, req: Request, res: Response) => {
     const statusCode = err.status || StatusCodes.INTERNAL_SERVER_ERROR
     const message = err.message || 'Something went wrong'
 

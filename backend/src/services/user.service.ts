@@ -1,6 +1,7 @@
 import { User, Prisma } from '../../generated/prisma'
 import { UserRepository } from '../repositories/user.repository'
 import { TokenRepository } from '../repositories/token.repository'
+import { EnrollmentRepository } from '../repositories/enrollment.repository'
 import { PaginationOptions, PaginationResult } from '../repositories/base.repository'
 import { BadRequestError, NotFoundError, ConflictError } from '@/cores/error.handler'
 import { BaseService } from './base.service'
@@ -26,7 +27,8 @@ export interface UpdateUserDto {
 export class UserService extends BaseService<User, CreateUserDto, UpdateUserDto, Prisma.UserWhereInput> {
   constructor(
     private userRepository: UserRepository,
-    private tokenRepository: TokenRepository
+    private tokenRepository: TokenRepository,
+    private enrollmentRepository: EnrollmentRepository
   ) {
     super(userRepository)
   }
@@ -97,7 +99,8 @@ export class UserService extends BaseService<User, CreateUserDto, UpdateUserDto,
 
   protected transformOutput(user: User): User {
     // Remove password from output
-    const { password, ...userWithoutPassword } = user
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userWithoutPassword } = user
     return userWithoutPassword as User
   }
 
@@ -181,5 +184,38 @@ export class UserService extends BaseService<User, CreateUserDto, UpdateUserDto,
 
   async deleteUser(id: string): Promise<User> {
     return this.delete(id)
+  }
+
+  /**
+   * Get user's roadmaps with pagination and status filtering
+   */
+  async getUserRoadmaps(
+    userId: string,
+    status?: 'enrolled' | 'completed' | 'all',
+    page: number = 1,
+    limit: number = 10
+  ) {
+    // Validate user exists
+    await this.findById(userId)
+
+    // Get user enrollments with roadmap details
+    const enrollments = await this.enrollmentRepository.findUserEnrollments(userId, status)
+
+    // Apply pagination if needed
+    const skip = (page - 1) * limit
+    const paginatedEnrollments = enrollments.slice(skip, skip + limit)
+
+    const totalPages = Math.ceil(enrollments.length / limit)
+    return {
+      data: paginatedEnrollments,
+      meta: {
+        page,
+        limit,
+        total: enrollments.length,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
+    }
   }
 }

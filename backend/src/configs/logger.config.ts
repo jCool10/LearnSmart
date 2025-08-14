@@ -3,7 +3,7 @@ import os from 'os'
 import 'winston-daily-rotate-file'
 import { configs } from './index'
 
-const { combine, timestamp, printf, splat, errors, json, colorize, uncolorize, align } = winston.format
+const { combine, timestamp, printf, errors, json, colorize, uncolorize } = winston.format
 
 const timestampFormat = timestamp({
   format: 'DD-MM-YYYY HH:mm:ss'

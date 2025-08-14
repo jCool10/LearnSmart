@@ -31,7 +31,7 @@ class SimpleValidator implements Validator {
 
     // Basic validation rules
     for (const [field, rules] of Object.entries(schema)) {
-      const value = data[field]
+      let value = data[field]
       const ruleSet = rules as any
 
       // Required validation
@@ -46,6 +46,13 @@ class SimpleValidator implements Validator {
 
       // Skip other validations if field is not provided and not required
       if (value === undefined || value === null) continue
+
+      // Auto-convert string numbers to numbers for query parameters
+      if (ruleSet.type === 'number' && typeof value === 'string' && !isNaN(Number(value))) {
+        value = Number(value)
+        // Update the original data object for downstream use
+        data[field] = value
+      }
 
       // Type validation
       if (ruleSet.type) {

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { authAPI } from '@/lib/axios'
 import { 
   AuthContextType, 
@@ -12,6 +13,7 @@ import {
   ApiResponse,
   AuthResponseDto
 } from '@/types/auth.types'
+import { authKeys } from '@/hooks/useAuthQueries'
 
 // Create Auth Context
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -26,6 +28,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserDto | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const queryClient = useQueryClient()
 
   // Initialize auth state from localStorage
   useEffect(() => {
@@ -71,6 +74,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem(AUTH_STORAGE_KEYS.USER)
     setUser(null)
     setIsAuthenticated(false)
+    // Clear all React Query cache on logout
+    queryClient.clear()
   }
 
   // Login function
@@ -89,6 +94,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Update state
         setUser(userData)
         setIsAuthenticated(true)
+        
+        // Invalidate and refetch user queries
+        queryClient.invalidateQueries({ queryKey: authKeys.user() })
+        // Invalidate all queries that might depend on auth state
+        queryClient.invalidateQueries()
       } else {
         throw new Error(response.message || 'Login failed')
       }
@@ -114,6 +124,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Update state
         setUser(newUser)
         setIsAuthenticated(true)
+        
+        // Invalidate and refetch user queries
+        queryClient.invalidateQueries({ queryKey: authKeys.user() })
+        // Invalidate all queries that might depend on auth state
+        queryClient.invalidateQueries()
       } else {
         throw new Error(response.message || 'Registration failed')
       }
@@ -205,6 +220,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const updatedUser = { ...user, isEmailVerified: true }
         setUser(updatedUser)
         localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(updatedUser))
+        
+        // Invalidate current user query to reflect updated verification status
+        queryClient.invalidateQueries({ queryKey: authKeys.currentUser() })
       } else if (!response.success) {
         throw new Error(response.message || 'Email verification failed')
       }

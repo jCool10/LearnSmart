@@ -45,8 +45,8 @@ export class UserController extends BaseController<UserDto, CreateUserDto, Updat
   getAllUsers = catchAsync(async (req: Request, res: Response) => {
     const { page = 1, limit = 10, ...where } = req.query
     const options: PaginationOptions = {
-      page: parseInt(page as string),
-      limit: Math.min(parseInt(limit as string), 100)
+      skip: (parseInt(page as string) - 1) * Math.min(parseInt(limit as string), 100),
+      take: Math.min(parseInt(limit as string), 100)
     }
 
     const result = await this.userService.getAllUsers(options)
@@ -70,8 +70,8 @@ export class UserController extends BaseController<UserDto, CreateUserDto, Updat
     }
 
     const options: PaginationOptions = {
-      page: parseInt(page as string),
-      limit: Math.min(parseInt(limit as string), 100)
+      skip: (parseInt(page as string) - 1) * Math.min(parseInt(limit as string), 100),
+      take: Math.min(parseInt(limit as string), 100)
     }
 
     const result = await this.userService.searchUsers(searchTerm as string, options)
@@ -111,6 +111,27 @@ export class UserController extends BaseController<UserDto, CreateUserDto, Updat
     ResponseHandler.success(res, {
       message: 'User statistics retrieved successfully',
       data: stats
+    })
+  })
+
+  getUserRoadmaps = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params
+    const { status, page = 1, limit = 10 } = req.query
+
+    const pageNum = parseInt(page as string)
+    const limitNum = Math.min(parseInt(limit as string), 100)
+
+    const result = await this.userService.getUserRoadmaps(
+      id,
+      status as 'enrolled' | 'completed' | 'all' | undefined,
+      pageNum,
+      limitNum
+    )
+
+    ResponseHandler.paginated(res, {
+      message: 'User roadmaps retrieved successfully',
+      data: result.data,
+      pagination: result.meta
     })
   })
 

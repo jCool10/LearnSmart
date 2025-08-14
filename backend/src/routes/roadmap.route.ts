@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { roadmapController } from '@/controllers'
 import { auth, optionalAuth } from '@/middlewares/auth.middleware'
-import { validate } from '@/middlewares/validation.middleware'
+import { validateJoi, commonJoiSchemas } from '@/middlewares/joi.validation.middleware'
 import {
   createRoadmapSchema,
   updateRoadmapSchema,
@@ -66,7 +66,7 @@ const router = Router()
  *                       items:
  *                         $ref: '#/components/schemas/Roadmap'
  */
-router.get('/', optionalAuth, validate({ query: roadmapQuerySchema }), roadmapController.getRoadmapsWithFilters)
+router.get('/', optionalAuth, validateJoi({ query: roadmapQuerySchema }), roadmapController.getRoadmapsWithFilters)
 
 /**
  * @swagger
@@ -121,6 +121,8 @@ router.get('/popular', optionalAuth, roadmapController.getPopularRoadmaps)
  *               $ref: '#/components/schemas/Error'
  */
 router.get('/recommended', auth(), roadmapController.getRecommendedRoadmaps)
+
+// NOTE: User roadmaps route moved to user.route.ts to avoid conflicts
 
 /**
  * @swagger
@@ -206,7 +208,7 @@ router.get('/search', optionalAuth, roadmapController.searchRoadmaps)
 router.get(
   '/creator/:creatorId',
   optionalAuth,
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.idParam }),
   roadmapController.getRoadmapsByCreator
 )
 
@@ -242,7 +244,7 @@ router.get(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', optionalAuth, validate({ params: idParamSchema }), roadmapController.getRoadmapDetails)
+router.get('/:id', optionalAuth, validateJoi({ params: commonJoiSchemas.idParam }), roadmapController.getRoadmapDetails)
 
 /**
  * @swagger
@@ -291,7 +293,7 @@ router.get('/:id', optionalAuth, validate({ params: idParamSchema }), roadmapCon
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id/stats', validate({ params: idParamSchema }), roadmapController.getRoadmapStatistics)
+router.get('/:id/stats', validateJoi({ params: commonJoiSchemas.idParam }), roadmapController.getRoadmapStatistics)
 
 /**
  * @swagger
@@ -332,7 +334,7 @@ router.get('/:id/stats', validate({ params: idParamSchema }), roadmapController.
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', auth(), validate({ body: createRoadmapSchema }), roadmapController.createRoadmapWithContent)
+router.post('/', auth(), validateJoi({ body: createRoadmapSchema }), roadmapController.createRoadmapWithContent)
 
 /**
  * @swagger
@@ -432,13 +434,13 @@ router.post('/', auth(), validate({ body: createRoadmapSchema }), roadmapControl
 router.put(
   '/:id',
   auth(),
-  validate({
-    params: idParamSchema,
+  validateJoi({
+    params: commonJoiSchemas.idParam,
     body: updateRoadmapSchema
   }),
   roadmapController.updateRoadmap
 )
 
-router.delete('/:id', auth(), validate({ params: idParamSchema }), roadmapController.deleteRoadmap)
+router.delete('/:id', auth(), validateJoi({ params: commonJoiSchemas.idParam }), roadmapController.deleteRoadmap)
 
 export default router

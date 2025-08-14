@@ -14,7 +14,8 @@ export const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken')
+    // Use consistent storage keys
+    const token = localStorage.getItem('accessToken') // Keep consistent with existing storage
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -37,7 +38,7 @@ api.interceptors.response.use(
 
       try {
         // Try to refresh token
-        const refreshToken = localStorage.getItem('refreshToken')
+        const refreshToken = localStorage.getItem('refreshToken') // Keep consistent with existing storage
         if (refreshToken) {
           const response = await api.post('/auth/refresh-tokens', {
             refreshToken,

@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { ProgressController } from '@/controllers/progress.controller'
 import { auth, authorize } from '@/middlewares/auth.middleware'
-import { validate } from '@/middlewares/validation.middleware'
+import { validateJoi, commonJoiSchemas } from '@/middlewares/joi.validation.middleware'
 import { updateLessonProgressSchema, bulkProgressUpdateSchema, idParamSchema } from '@/validations/roadmap.validation'
 
 const router = Router()
@@ -15,8 +15,8 @@ const progressController = new ProgressController()
 router.put(
   '/lessons/:lessonId/progress',
   auth(),
-  validate({
-    params: idParamSchema,
+  validateJoi({
+    params: commonJoiSchemas.lessonIdParam,
     body: updateLessonProgressSchema
   }),
   progressController.updateLessonProgress
@@ -65,7 +65,7 @@ router.put(
 router.get(
   '/lessons/:lessonId/progress',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.idParam }),
   progressController.getLessonProgress
 )
 
@@ -145,7 +145,7 @@ router.get(
 router.get(
   '/roadmaps/:roadmapId/progress',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.idParam }),
   progressController.getUserProgressInRoadmap
 )
 
@@ -192,7 +192,7 @@ router.get(
 router.post(
   '/lessons/:lessonId/complete',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.idParam }),
   progressController.markLessonCompleted
 )
 
@@ -239,7 +239,7 @@ router.post(
 router.post(
   '/lessons/:lessonId/incomplete',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.idParam }),
   progressController.markLessonIncomplete
 )
 
@@ -313,7 +313,7 @@ router.post(
 router.get(
   '/users/:userId/learning-stats',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.userIdParam }),
   progressController.getUserOverallStats
 )
 
@@ -386,7 +386,7 @@ router.get(
 router.get(
   '/users/:userId/recent-activity',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.userIdParam }),
   progressController.getRecentActivity
 )
 
@@ -443,7 +443,7 @@ router.get(
  */
 router.get(
   '/roadmaps/:roadmapId/lesson-completion-rates',
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.idParam }),
   progressController.getRoadmapLessonCompletionRates
 )
 
@@ -506,14 +506,14 @@ router.get(
 router.get(
   '/users/:userId/learning-streak',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.userIdParam }),
   progressController.getUserLearningStreak
 )
 
 router.delete(
   '/roadmaps/:roadmapId/progress',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.idParam }),
   progressController.resetUserProgressInRoadmap
 )
 
@@ -557,7 +557,12 @@ router.delete(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/lessons/:lessonId/next', auth(), validate({ params: idParamSchema }), progressController.getNextLesson)
+router.get(
+  '/lessons/:lessonId/next',
+  auth(),
+  validateJoi({ params: commonJoiSchemas.idParam }),
+  progressController.getNextLesson
+)
 
 /**
  * @swagger
@@ -602,7 +607,7 @@ router.get('/lessons/:lessonId/next', auth(), validate({ params: idParamSchema }
 router.get(
   '/lessons/:lessonId/previous',
   auth(),
-  validate({ params: idParamSchema }),
+  validateJoi({ params: commonJoiSchemas.idParam }),
   progressController.getPreviousLesson
 )
 
@@ -683,7 +688,7 @@ router.post(
   '/progress/bulk-update',
   auth(),
   authorize('admin'),
-  validate({ body: bulkProgressUpdateSchema }),
+  validateJoi({ body: bulkProgressUpdateSchema }),
   progressController.bulkUpdateProgress
 )
 

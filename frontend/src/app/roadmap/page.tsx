@@ -23,156 +23,98 @@ import {
   Brain
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRoadmaps, usePopularRoadmaps, useRecommendedRoadmaps } from '@/hooks/useRoadmapQueries'
+import { useCategories } from '@/hooks/useCategoryQueries'
+import { useUserEnrollments, useUserStats } from '@/hooks/useEnrollmentQueries'
+import { RoadmapCard } from '@/components/roadmap/RoadmapCard'
 
 const RoadmapIndexPage: React.FC = () => {
   const { user } = useAuth()
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-
-  const categories = [
-    { value: 'all', label: 'Tất cả', count: 12 },
-    { value: 'programming', label: 'Lập trình', count: 6 },
-    { value: 'design', label: 'Thiết kế', count: 3 },
-    { value: 'business', label: 'Kinh doanh', count: 2 },
-    { value: 'soft-skills', label: 'Kỹ năng mềm', count: 1 }
-  ]
-
-  // Mock roadmap data
-  const roadmaps = [
-    {
-      id: '1',
-      title: 'JavaScript Fundamentals',
-      description: 'Học JavaScript từ cơ bản đến nâng cao với phương pháp step-by-step',
-      category: 'programming',
-      difficulty: 'Beginner',
-      totalLessons: 15,
-      completedLessons: 6,
-      estimatedTime: '8 weeks',
-      progress: 40,
-      averageScore: 87,
-      enrolledUsers: 2340,
-      rating: 4.8,
-      lastAccessed: '2024-12-08',
-      tags: ['JavaScript', 'Frontend', 'Programming'],
-      isEnrolled: true,
-      isCompleted: false
-    },
-    {
-      id: '2',
-      title: 'React Development Path',
-      description: 'Trở thành React Developer với roadmap toàn diện từ hooks đến advanced patterns',
-      category: 'programming',
-      difficulty: 'Intermediate',
-      totalLessons: 20,
-      completedLessons: 0,
-      estimatedTime: '12 weeks',
-      progress: 0,
-      averageScore: 0,
-      enrolledUsers: 1850,
-      rating: 4.9,
-      lastAccessed: null,
-      tags: ['React', 'JavaScript', 'Frontend'],
-      isEnrolled: false,
-      isCompleted: false
-    },
-    {
-      id: '3',
-      title: 'UI/UX Design Mastery',
-      description: 'Học thiết kế UI/UX từ nguyên lý cơ bản đến thực hành dự án thực tế',
-      category: 'design',
-      difficulty: 'Beginner',
-      totalLessons: 18,
-      completedLessons: 18,
-      estimatedTime: '10 weeks',
-      progress: 100,
-      averageScore: 92,
-      enrolledUsers: 1200,
-      rating: 4.7,
-      lastAccessed: '2024-12-05',
-      tags: ['UI Design', 'UX Design', 'Figma'],
-      isEnrolled: true,
-      isCompleted: true
-    },
-    {
-      id: '4',
-      title: 'Python for Data Science',
-      description: 'Roadmap hoàn chỉnh để trở thành Data Scientist với Python',
-      category: 'programming',
-      difficulty: 'Intermediate',
-      totalLessons: 25,
-      completedLessons: 3,
-      estimatedTime: '16 weeks',
-      progress: 12,
-      averageScore: 85,
-      enrolledUsers: 3200,
-      rating: 4.8,
-      lastAccessed: '2024-12-07',
-      tags: ['Python', 'Data Science', 'Machine Learning'],
-      isEnrolled: true,
-      isCompleted: false
-    },
-    {
-      id: '5',
-      title: 'Digital Marketing Strategy',
-      description: 'Xây dựng chiến lược marketing digital hiệu quả cho doanh nghiệp',
-      category: 'business',
-      difficulty: 'Advanced',
-      totalLessons: 12,
-      completedLessons: 0,
-      estimatedTime: '6 weeks',
-      progress: 0,
-      averageScore: 0,
-      enrolledUsers: 890,
-      rating: 4.6,
-      lastAccessed: null,
-      tags: ['Marketing', 'Strategy', 'Business'],
-      isEnrolled: false,
-      isCompleted: false
-    },
-    {
-      id: '6',
-      title: 'Leadership & Communication',
-      description: 'Phát triển kỹ năng lãnh đạo và giao tiếp hiệu quả',
-      category: 'soft-skills',
-      difficulty: 'Intermediate',
-      totalLessons: 10,
-      completedLessons: 0,
-      estimatedTime: '4 weeks',
-      progress: 0,
-      averageScore: 0,
-      enrolledUsers: 650,
-      rating: 4.5,
-      lastAccessed: null,
-      tags: ['Leadership', 'Communication', 'Soft Skills'],
-      isEnrolled: false,
-      isCompleted: false
-    }
-  ]
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Beginner':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-      case 'Intermediate':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-      case 'Advanced':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
-    }
+  const [currentPage, setCurrentPage] = useState(1)
+  
+  // Fetch data from API
+  const { data: categoriesData, isLoading: isLoadingCategories } = useCategories()
+  const { data: userEnrollmentsData } = useUserEnrollments(user?.id || '', 'all')
+  const { data: userStatsData } = useUserStats(user?.id || '')
+  
+  // Build filters and pagination
+  const filters = {
+    category: selectedCategory !== 'all' ? selectedCategory : undefined,
+    search: searchQuery.trim() || undefined
   }
-
-  const filteredRoadmaps = roadmaps.filter(roadmap => {
-    const matchesCategory = selectedCategory === 'all' || roadmap.category === selectedCategory
-    const matchesSearch = roadmap.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         roadmap.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         roadmap.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  
+  const pagination = {
+    page: currentPage,
+    limit: 12
+  }
+  
+  const { 
+    data: roadmapsData, 
+    isLoading: isLoadingRoadmaps 
+  } = useRoadmaps({ ...filters, ...pagination })
+  
+  const { 
+    data: popularRoadmapsData, 
+    isLoading: isLoadingPopular 
+  } = usePopularRoadmaps(6)
+  
+  const { 
+    data: recommendedRoadmapsData, 
+    isLoading: isLoadingRecommended 
+  } = useRecommendedRoadmaps(4)
+  
+  // Process categories data
+  const categories = React.useMemo(() => {
+    if (!categoriesData?.data) {
+      return [{ value: 'all', label: 'Tất cả', count: 0 }]
+    }
     
-    return matchesCategory && matchesSearch
-  })
+    const allCategory = { 
+      value: 'all', 
+      label: 'Tất cả', 
+      count: categoriesData.data.reduce((sum, cat) => sum + (cat.roadmapCount || 0), 0) 
+    }
+    
+    const categoryOptions = categoriesData.data.map(cat => ({
+      value: cat.value,
+      label: cat.label,
+      count: cat.roadmapCount || 0
+    }))
+    
+    return [allCategory, ...categoryOptions]
+  }, [categoriesData])
+  
+  // Process roadmaps data - Backend returns { data: [], meta: {} }
+  const roadmaps = roadmapsData?.data?.data || []  // Backend structure: response.data.data
+  const pagination_info = roadmapsData?.data?.meta  // Backend structure: response.data.meta
+  
+  // Calculate user stats
+  const userEnrollments = userEnrollmentsData?.data || []
+  const enrolledRoadmaps = userEnrollments.filter(e => !e.isCompleted)
+  const completedRoadmaps = userEnrollments.filter(e => e.isCompleted)
+  const userStats = userStatsData?.data
+  
+  const averageProgress = enrolledRoadmaps.length > 0 
+    ? Math.round(enrolledRoadmaps.reduce((sum, e) => sum + e.progress, 0) / enrolledRoadmaps.length)
+    : 0
+  
+  const averageScore = userStats?.averageScore || 0
 
-  const enrolledRoadmaps = roadmaps.filter(r => r.isEnrolled)
-  const completedRoadmaps = roadmaps.filter(r => r.isCompleted)
+  // Handle search and category changes
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    setCurrentPage(1) // Reset to first page when searching
+  }
+  
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category)
+    setCurrentPage(1) // Reset to first page when changing category
+  }
+  
+  // Loading states
+  const isLoading = isLoadingRoadmaps || isLoadingCategories
 
   return (
     <ProtectedRoute>
@@ -237,7 +179,7 @@ const RoadmapIndexPage: React.FC = () => {
                   <TrendingUp className="w-8 h-8 text-purple-500 mr-3" />
                   <div>
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {Math.round(enrolledRoadmaps.reduce((sum, r) => sum + r.progress, 0) / Math.max(enrolledRoadmaps.length, 1))}%
+                      {averageProgress}%
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Tiến độ TB</p>
                   </div>
@@ -249,7 +191,7 @@ const RoadmapIndexPage: React.FC = () => {
                   <Award className="w-8 h-8 text-yellow-500 mr-3" />
                   <div>
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {Math.round(enrolledRoadmaps.reduce((sum, r) => sum + r.averageScore, 0) / Math.max(enrolledRoadmaps.length, 1))}%
+                      {Math.round(averageScore)}%
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Điểm TB</p>
                   </div>
@@ -266,7 +208,7 @@ const RoadmapIndexPage: React.FC = () => {
                     type="text"
                     placeholder="Tìm kiếm roadmap..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => handleSearch(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
@@ -276,7 +218,7 @@ const RoadmapIndexPage: React.FC = () => {
                 {categories.map(category => (
                   <button
                     key={category.value}
-                    onClick={() => setSelectedCategory(category.value)}
+                    onClick={() => handleCategoryChange(category.value)}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       selectedCategory === category.value
                         ? 'bg-blue-500 text-white'
@@ -291,136 +233,72 @@ const RoadmapIndexPage: React.FC = () => {
           </div>
 
           {/* Roadmaps Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRoadmaps.map((roadmap) => (
-              <div 
-                key={roadmap.id}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300"
-              >
-                {/* Header */}
-                <div className="p-6 pb-4">
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, index) => (
+                <div 
+                  key={index}
+                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 animate-pulse"
+                >
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(roadmap.difficulty)}`}>
-                        {roadmap.difficulty}
-                      </span>
-                      {roadmap.isCompleted && (
-                        <div className="flex items-center px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Hoàn thành
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                      <Star className="w-4 h-4 mr-1 text-yellow-400" />
-                      {roadmap.rating}
-                    </div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-12"></div>
                   </div>
-
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    {roadmap.title}
-                  </h3>
-                  
-                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
-                    {roadmap.description}
-                  </p>
-
-                  {/* Progress */}
-                  {roadmap.isEnrolled && (
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-gray-600 dark:text-gray-400">Tiến độ</span>
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {roadmap.completedLessons}/{roadmap.totalLessons} bài
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div 
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${roadmap.progress}%` }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        <span>{roadmap.progress}% hoàn thành</span>
-                        {roadmap.averageScore > 0 && (
-                          <span>Điểm TB: {roadmap.averageScore}%</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {roadmap.tags.slice(0, 3).map((tag, index) => (
-                      <span 
-                        key={index}
-                        className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-full"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                    {roadmap.tags.length > 3 && (
-                      <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-full">
-                        +{roadmap.tags.length - 3}
-                      </span>
-                    )}
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-4"></div>
+                  <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full w-full mb-4"></div>
+                  <div className="flex space-x-2 mb-4">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20"></div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                   </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {roadmaps.map((roadmap) => (
+                <RoadmapCard 
+                  key={roadmap.id}
+                  roadmap={roadmap}
+                  showEnrollButton={true}
+                  showProgress={true}
+                  variant="default"
+                />
+              ))}
+            </div>
+          )}
 
-                {/* Footer */}
-                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 rounded-b-xl">
-                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-3">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {roadmap.estimatedTime}
-                      </div>
-                      <div className="flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        {roadmap.enrolledUsers.toLocaleString()}
-                      </div>
-                    </div>
-                    
-                    {roadmap.lastAccessed && (
-                      <span className="text-xs">
-                        Học lần cuối: {new Date(roadmap.lastAccessed).toLocaleDateString('vi-VN')}
-                      </span>
-                    )}
-                  </div>
+          {/* Pagination */}
+          {pagination_info && pagination_info.totalPages > 1 && (
+            <div className="flex justify-center items-center space-x-4 mt-8">
+              <Button 
+                variant="outline"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+              >
+                Trang trước
+              </Button>
+              
+              <span className="text-gray-600 dark:text-gray-400">
+                Trang {currentPage} / {pagination_info.totalPages}
+              </span>
+              
+              <Button 
+                variant="outline"
+                disabled={currentPage === pagination_info.totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+              >
+                Trang sau
+              </Button>
+            </div>
+          )}
 
-                  <div className="flex items-center space-x-2">
-                    {roadmap.isEnrolled ? (
-                      <Link href={`/roadmap/${roadmap.id}`} className="flex-1">
-                        <Button className="w-full">
-                          {roadmap.isCompleted ? (
-                            <>
-                              <BarChart3 className="w-4 h-4 mr-2" />
-                              Xem lại
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-4 h-4 mr-2" />
-                              Tiếp tục học
-                            </>
-                          )}
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Link href={`/roadmap/${roadmap.id}`} className="flex-1">
-                        <Button className="w-full">
-                          <BookOpen className="w-4 h-4 mr-2" />
-                          Tham gia roadmap
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
 
-          {filteredRoadmaps.length === 0 && (
+          {!isLoading && roadmaps.length === 0 && (
             <div className="text-center py-12">
               <Brain className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
@@ -430,8 +308,8 @@ const RoadmapIndexPage: React.FC = () => {
                 Thử thay đổi từ khóa tìm kiếm hoặc danh mục
               </p>
               <Button variant="outline" onClick={() => {
-                setSearchQuery('')
-                setSelectedCategory('all')
+                handleSearch('')
+                handleCategoryChange('all')
               }}>
                 Đặt lại bộ lọc
               </Button>
@@ -439,59 +317,104 @@ const RoadmapIndexPage: React.FC = () => {
           )}
 
           {/* AI Recommendation Section */}
-          <div className="mt-12 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700 p-8">
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <Brain className="w-6 h-6 text-white" />
+          {recommendedRoadmapsData?.data && recommendedRoadmapsData.data.length > 0 && (
+            <div className="mt-12 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700 p-8">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    AI Đề xuất cho bạn
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Dựa trên tiến độ học tập và sở thích của bạn
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  AI Đề xuất cho bạn
+
+              {isLoadingRecommended ? (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {[...Array(2)].map((_, index) => (
+                    <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
+                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-4"></div>
+                      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {recommendedRoadmapsData.data.slice(0, 2).map((roadmap, index) => (
+                    <div key={roadmap.id} className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center space-x-3 mb-4">
+                        {index === 0 ? (
+                          <Zap className="w-6 h-6 text-orange-500" />
+                        ) : (
+                          <Award className="w-6 h-6 text-yellow-500" />
+                        )}
+                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                          {index === 0 ? 'Roadmap phù hợp nhất' : 'Kỹ năng bổ trợ'}
+                        </h4>
+                      </div>
+                      <h5 className="font-medium text-gray-900 dark:text-white mb-2">
+                        {roadmap.title}
+                      </h5>
+                      <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                        {roadmap.description}
+                      </p>
+                      <Link href={`/roadmap/${roadmap.id}`}>
+                        <Button variant="outline">
+                          <Target className="w-4 h-4 mr-2" />
+                          Xem chi tiết
+                        </Button>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Popular Roadmaps Section */}
+          {popularRoadmapsData?.data && popularRoadmapsData.data.length > 0 && (
+            <div className="mt-12">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Roadmap phổ biến
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Dựa trên tiến độ học tập và sở thích của bạn
-                </p>
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center space-x-3 mb-4">
-                  <Zap className="w-6 h-6 text-orange-500" />
-                  <h4 className="font-semibold text-gray-900 dark:text-white">
-                    Roadmap phù hợp nhất
-                  </h4>
-                </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  Dựa trên việc bạn đang học JavaScript, AI khuyên bạn nên học React tiếp theo.
-                </p>
-                <Link href="/roadmap/2">
+                <Link href="/roadmap?category=all">
                   <Button variant="outline">
-                    <Target className="w-4 h-4 mr-2" />
-                    Xem React Development Path
+                    Xem tất cả
                   </Button>
                 </Link>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center space-x-3 mb-4">
-                  <Award className="w-6 h-6 text-yellow-500" />
-                  <h4 className="font-semibold text-gray-900 dark:text-white">
-                    Kỹ năng bổ trợ
-                  </h4>
+              {isLoadingPopular ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[...Array(3)].map((_, index) => (
+                    <div key={index} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 animate-pulse">
+                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-4"></div>
+                      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                    </div>
+                  ))}
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  Để trở thành developer toàn diện, bạn nên bổ sung thêm kỹ năng thiết kế UI/UX.
-                </p>
-                <Link href="/roadmap/3">
-                  <Button variant="outline">
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Xem UI/UX Design Mastery
-                  </Button>
-                </Link>
-              </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {popularRoadmapsData.data.slice(0, 3).map((roadmap) => (
+                    <RoadmapCard 
+                      key={roadmap.id}
+                      roadmap={roadmap}
+                      showEnrollButton={true}
+                      showProgress={false}
+                      variant="compact"
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </main>
       </div>
     </ProtectedRoute>

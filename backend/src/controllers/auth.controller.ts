@@ -4,7 +4,7 @@ import { AuthService } from '@/services/auth.service'
 import catchAsync from '@/utils/catchAsync'
 import { Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
-import { RegisterDto, LoginDto, RefreshTokenDto, ForgotPasswordDto, ResetPasswordDto, UserDto } from '@/types/dto.types'
+import { RegisterDto, UserDto } from '@/types/dto.types'
 
 export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   constructor(private authService: AuthService) {
@@ -12,7 +12,7 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   }
 
   register = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.authService.registerLegacy(req) // Using legacy method during migration
+    const result = await this.authService.register(req) // Using legacy method during migration
 
     ResponseHandler.success(res, {
       message: 'User registered successfully',
@@ -22,7 +22,7 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   })
 
   login = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.authService.loginLegacy(req) // Using legacy method during migration
+    const result = await this.authService.login(req) // Using legacy method during migration
 
     ResponseHandler.success(res, {
       message: 'Login successful',
@@ -31,7 +31,7 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   })
 
   logout = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.authService.logoutLegacy(req)
+    const result = await this.authService.logout(req)
 
     ResponseHandler.success(res, {
       message: 'Logout successful',
@@ -40,7 +40,7 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   })
 
   refreshTokens = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.authService.refreshTokensLegacy(req) // Using legacy method during migration
+    const result = await this.authService.refreshTokens(req) // Using legacy method during migration
 
     ResponseHandler.success(res, {
       message: 'Tokens refreshed successfully',
@@ -49,7 +49,7 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   })
 
   forgotPassword = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.authService.forgotPasswordLegacy(req) // Using legacy method during migration
+    const result = await this.authService.forgotPassword(req) // Using legacy method during migration
 
     ResponseHandler.success(res, {
       message: 'Password reset email sent successfully',
@@ -58,7 +58,7 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   })
 
   resetPassword = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.authService.resetPasswordLegacy(req) // Using legacy method during migration
+    const result = await this.authService.resetPassword(req) // Using legacy method during migration
 
     ResponseHandler.success(res, {
       message: 'Password reset successful',
@@ -67,7 +67,7 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
   })
 
   sendVerificationEmail = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.authService.sendVerificationEmailLegacy(req)
+    const result = await this.authService.sendVerificationEmail(req)
 
     ResponseHandler.success(res, {
       message: 'Verification email sent successfully',
@@ -77,7 +77,7 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
 
   verifyEmail = catchAsync(async (req: Request, res: Response) => {
     // const verifyEmailData: VerifyEmailDto = req.body
-    const result = await this.authService.verifyEmailLegacy(req) // Using legacy method during migration
+    const result = await this.authService.verifyEmail(req) // Using legacy method during migration
 
     ResponseHandler.success(res, {
       message: 'Email verified successfully',
@@ -87,15 +87,7 @@ export class AuthController extends BaseController<UserDto, RegisterDto, any> {
 
   // Get current user
   getCurrentUser = catchAsync(async (req: Request, res: Response) => {
-    const userId = req.user.id
-    if (!userId) {
-      ResponseHandler.error(res, {
-        message: 'User not authenticated',
-        statusCode: StatusCodes.UNAUTHORIZED
-      })
-    }
-
-    const user = await this.authService.getCurrentUser(userId)
+    const user = await this.authService.getCurrentUser(req)
 
     ResponseHandler.success(res, {
       message: 'User data retrieved successfully',

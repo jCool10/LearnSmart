@@ -243,6 +243,34 @@ export const userValidations = {
         required: true
       }
     }
+  } as ValidationSchema,
+
+  // Get user roadmaps
+  getUserRoadmaps: {
+    params: {
+      id: {
+        ...commonValidations.cuid,
+        required: true
+      }
+    },
+    query: {
+      status: {
+        type: 'string',
+        enum: ['enrolled', 'completed', 'all'],
+        required: false
+      },
+      page: {
+        type: 'number',
+        min: 1,
+        required: false
+      },
+      limit: {
+        type: 'number',
+        min: 1,
+        max: 100,
+        required: false
+      }
+    }
   } as ValidationSchema
 }
 

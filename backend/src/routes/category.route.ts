@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { categoryController } from '@/controllers'
 import { auth, authorize } from '@/middlewares/auth.middleware'
-import { validate } from '@/middlewares/validation.middleware'
+import { validateJoi, commonJoiSchemas } from '@/middlewares/joi.validation.middleware'
 import {
   createCategorySchema,
   updateCategorySchema,
@@ -155,7 +155,7 @@ router.get('/value/:value', categoryController.getByValue)
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', validate({ params: idParamSchema }), categoryController.getById)
+router.get('/:id', validateJoi({ params: commonJoiSchemas.idParam }), categoryController.getById)
 
 /**
  * @swagger
@@ -202,7 +202,7 @@ router.get('/:id', validate({ params: idParamSchema }), categoryController.getBy
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', auth(), authorize('admin'), validate({ body: createCategorySchema }), categoryController.create)
+router.post('/', auth(), authorize('admin'), validateJoi({ body: createCategorySchema }), categoryController.create)
 
 /**
  * @route   PUT /api/categories/:id
@@ -213,7 +213,7 @@ router.put(
   '/:id',
   auth(),
   authorize('admin'),
-  validate({
+  validateJoi({
     params: idParamSchema,
     body: updateCategorySchema
   }),
@@ -225,13 +225,25 @@ router.put(
  * @desc    Soft delete category (admin only)
  * @access  Private (Admin)
  */
-router.delete('/:id', auth(), authorize('admin'), validate({ params: idParamSchema }), categoryController.softDelete)
+router.delete(
+  '/:id',
+  auth(),
+  authorize('admin'),
+  validateJoi({ params: commonJoiSchemas.idParam }),
+  categoryController.softDelete
+)
 
 /**
  * @route   POST /api/categories/:id/restore
  * @desc    Restore soft deleted category (admin only)
  * @access  Private (Admin)
  */
-router.post('/:id/restore', auth(), authorize('admin'), validate({ params: idParamSchema }), categoryController.restore)
+router.post(
+  '/:id/restore',
+  auth(),
+  authorize('admin'),
+  validateJoi({ params: commonJoiSchemas.idParam }),
+  categoryController.restore
+)
 
 export default router

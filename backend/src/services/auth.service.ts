@@ -132,8 +132,8 @@ export class AuthService {
     return user
   }
 
-  async register(registerData: RegisterDto): Promise<AuthResponseDto> {
-    const { email, password, name } = registerData
+  async register(req: Request): Promise<AuthResponseDto> {
+    const { email, password, name } = req.body as RegisterDto
 
     this.validateEmail(email)
     this.validatePassword(password)
@@ -184,8 +184,8 @@ export class AuthService {
     }
   }
 
-  async login(loginData: LoginDto): Promise<AuthResponseDto> {
-    const { email, password } = loginData
+  async login(req: Request): Promise<AuthResponseDto> {
+    const { email, password } = req.body as LoginDto
     const user = await this.loginUserWithEmailAndPassword(email, password)
     const tokens = await this.generateAuthTokens(user)
 
@@ -212,8 +212,8 @@ export class AuthService {
     }
   }
 
-  async logout(refreshTokenData: RefreshTokenDto): Promise<void> {
-    const { refreshToken } = refreshTokenData
+  async logout(req: Request): Promise<void> {
+    const { refreshToken } = req.body as RefreshTokenDto
 
     if (!refreshToken) {
       throw new BadRequestError('Refresh token is required')
@@ -228,8 +228,8 @@ export class AuthService {
     logger.info('User logged out successfully', { userId: refreshTokenDoc.userId })
   }
 
-  async refreshTokens(refreshTokenData: RefreshTokenDto): Promise<TokensDto> {
-    const { refreshToken } = refreshTokenData
+  async refreshTokens(req: Request): Promise<TokensDto> {
+    const { refreshToken } = req.body as RefreshTokenDto
 
     if (!refreshToken) {
       throw new BadRequestError('Refresh token is required')
@@ -268,8 +268,8 @@ export class AuthService {
     }
   }
 
-  async forgotPassword(forgotPasswordData: ForgotPasswordDto) {
-    const { email } = forgotPasswordData
+  async forgotPassword(req: Request) {
+    const { email } = req.body as ForgotPasswordDto
     this.validateEmail(email)
 
     const user = await this.userService.getUserByEmail(email.toLowerCase().trim())
@@ -285,8 +285,8 @@ export class AuthService {
     return 'If your email is registered, you will receive password reset instructions'
   }
 
-  async resetPassword(resetPasswordData: ResetPasswordDto): Promise<{ message: string }> {
-    const { token, password } = resetPasswordData
+  async resetPassword(req: Request): Promise<{ message: string }> {
+    const { token, password } = req.body as ResetPasswordDto
 
     if (!token) {
       throw new BadRequestError('Reset token is required')
@@ -317,7 +317,8 @@ export class AuthService {
     }
   }
 
-  async sendVerificationEmail(user: User) {
+  async sendVerificationEmail(req: Request) {
+    const user = req.body as User
     if (user.isEmailVerified) {
       throw new BadRequestError('Email is already verified')
     }
@@ -329,8 +330,8 @@ export class AuthService {
     return 'Verification email sent'
   }
 
-  async verifyEmail(verifyEmailData: VerifyEmailDto) {
-    const { token } = verifyEmailData
+  async verifyEmail(req: Request) {
+    const { token } = req.body as VerifyEmailDto
 
     if (!token) {
       throw new BadRequestError('Verification token is required')
@@ -379,7 +380,8 @@ export class AuthService {
   }
 
   // Add getCurrentUser method after the existing methods
-  async getCurrentUser(userId: string): Promise<UserDto> {
+  async getCurrentUser(req: Request): Promise<UserDto> {
+    const userId = req.user.id
     const user = await this.userService.findById(userId)
 
     return {
@@ -391,46 +393,5 @@ export class AuthService {
       createdAt: user.createdAt?.toISOString(),
       updatedAt: user.updatedAt?.toISOString()
     }
-  }
-
-  // Legacy methods for backward compatibility - TODO: Remove after migration
-  async registerLegacy(req: Request) {
-    const { email, password, username } = req.body
-    return this.register({ email, password, name: username })
-  }
-
-  async loginLegacy(req: Request) {
-    const { email, password } = req.body
-    return this.login({ email, password })
-  }
-
-  async logoutLegacy(req: Request) {
-    const { refreshToken } = req.body
-    return this.logout({ refreshToken })
-  }
-
-  async refreshTokensLegacy(req: Request) {
-    const { refreshToken } = req.body
-    return this.refreshTokens({ refreshToken })
-  }
-
-  async forgotPasswordLegacy(req: Request) {
-    const { email } = req.body
-    return this.forgotPassword({ email })
-  }
-
-  async resetPasswordLegacy(req: Request) {
-    const { resetPasswordToken, newPassword } = req.body
-    return this.resetPassword({ token: resetPasswordToken, password: newPassword })
-  }
-
-  async sendVerificationEmailLegacy(req: Request) {
-    const { user } = req.body
-    return this.sendVerificationEmail(user)
-  }
-
-  async verifyEmailLegacy(req: Request) {
-    const { verifyEmailToken } = req.body
-    return this.verifyEmail({ token: verifyEmailToken })
   }
 }

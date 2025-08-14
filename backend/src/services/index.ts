@@ -30,7 +30,7 @@ import { RoadmapService } from './roadmap.service'
 import { EnrollmentService } from './enrollment.service'
 import { ProgressService } from './progress.service'
 
-export const userService = new UserService(userRepository, tokenRepository)
+export const userService = new UserService(userRepository, tokenRepository, enrollmentRepository)
 export const tokenService = new TokenService(tokenRepository, userRepository)
 export const authService = new AuthService()
 export const emailService = new EmailService()
